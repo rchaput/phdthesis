@@ -1,0 +1,3 @@
+https://stackoverflow.com/questions/50702942/does-rmarkdown-allow-captions-and-references-for-code-chunks
+
+https://github.com/rstudio/bookdown/issues/1292

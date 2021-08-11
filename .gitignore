@@ -8,7 +8,14 @@
 **/.DS_Store
 
 # thesisdown / bookdown files
-_book/
-_bookdown_files/
+_book/**
+_bookdown_files/**
 thesis.log
 thesis.lol
+thesis.aux
+thesis.bcf
+thesis.out
+
+# JetBrains
+.idea/**
+
