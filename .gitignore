@@ -1,0 +1,14 @@
+# R / RStudio files
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+# Mac OS X files
+**/.DS_Store
+
+# thesisdown / bookdown files
+_book/
+_bookdown_files/
+thesis.log
+thesis.lol
