@@ -1,0 +1,25 @@
+thesisdown::thesis_pdf:
+  includes:
+    # in_header: macros.tex
+thesisdown::thesis_gitbook: 
+  includes:
+    # in_header: ga.html
+    # before_body: macros.html
+  css: style.css
+  anchor_sections: true
+  config: 
+    fontsettings:
+      theme: sepia
+      family: serif
+      size: 2
+    sharing:
+      facebook: no
+      github: yes
+      twitter: no
+      linkedin: no
+      all: ["github"]
+    download: ["pdf"]
+    toc: 
+      # collapse: subsection
+      # before: "<br><br>"
+      # after: "<li><a href='https://abichat.github.io/defense' target='blank'>PhD defense</a></li>"
