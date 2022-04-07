@@ -13,4 +13,3 @@ This is an example of a thesis setup to use the reed thesis document class
 
 You can have a dedication here if you wish. 
 
-`r if(!knitr:::is_latex_output()) '## Abstract {-}'`

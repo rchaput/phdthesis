@@ -1,0 +1,182 @@
+# Introduction {#introduction}
+
+## Context {.unlisted .unnumbered}
+
+During the last decades, Artificial Intelligence (AI) techniques have been considerably developed.
+These techniques have made impressive progress in various tasks, such as image recognition, prediction, behaviour learning, etc.
+In some specific domains, such AI techniques are even deemed to exceed human performance.
+
+Due to this, AI-powered applications are increasingly deployed in our society.
+For example, loans can be granted based on the recommendation of an AI system.
+We might encounter more and more artificial agents, either physical, i.e., robots, or virtual, in the next years.
+
+A potential risk, which is frequently mentioned, is the "Value Alignment Problem" (Dignum, Russell).
+We can indeed wonder to which degree these systems, while solving their given task, will adopt behaviours that are aligned, or misaligned, with our human values.
+
+This question has led to the rise of several fields of research more or less related to the Ethics of AI.
+For example, the Fairness community aims to limit the learning of biases from the datasets that AI systems use to learn how to solve their task.
+The Explainable AI field aims to increase our ability to understand the process that these systems execute, such that we can agree with their outputs, or on the contrary question them.
+As such, it might help us know when to trust that these systems act accordingly to our values, and when we cannot trust them.
+
+In this thesis, we will more specifically focus on the Machine Ethics field.
+This field "is concerned with giving machines ethical principles, or a procedure for discovering a way to resolve the ethical dilemmas they might encounter, enabling them to function in an ethically responsible manner through their own ethical decision making" [@andersonMachineEthics2011].
+
+
+<!-- General Framework -->
+As a general framework, we consider that AI systems are integrated in a human society (ours), and do not live in their own world.
+As such, we will not talk about the ethics of the technical system alone, but rather the ethics of the whole Socio-Technical System (STS), which comprises both the artificial and human agents.
+Firstly, ethical considerations already exist in the social part of the system, and we can probably capture them for the technical part, either by (domain) expert knowledge, or user knowledge.
+Secondly, another consequence of such a framework is that the technical system can be used to improve humans' own ethical reasoning and considerations.
+Dilemmas can be leveraged to help users, and more generally stakeholders, reflect on their current considerations, acknowledge new dilemmas that they did not know about, and perhaps propose ways to evolve their ethical preferences and stances.
+As such, we should not automatically hide away dilemmas, but instead expose them to users.
+This requires some interpretability, and interaction, to allow for this co-construction of ethics within the STS.
+Whereas we did not solve these requirements (interpretability alone is a whole field of research), they served as some sort of guidelines, shaping the problems and potential approaches.
+Throughout the manuscript, we will sometimes refer to this general framework to emphasize the importance of some design choices.
+These design choices pave the way for the requirements of the general framework.
+
+From this general framework, we particularly extract two assumptions.
+First, ethical stakes and the whole ethical knowledge that is necessary for ethical decision-making, i.e., the ability to take decisions that integrate ethical considerations and would be deemed as ethically-aligned by humans, necessarily comes from humans.
+Whether artificial agents can be fully moral agents is an out-of-scope debate for this manuscript, and we leave this question to moral philosophers.
+We will simply assume that current agents are probably not able to demonstrate the same level of ethical capabilities as humans, because they lack some metaphysical properties, such as free will.
+Despite this, we still would like them to take actions that consider, as much as possible, ethical considerations, so as to improve our lives.
+
+Floridi and Sanders argue that, whereas there is a difference between artificial agents and humans, under the correct Level of Abstraction, some artificial agents can be said to have moral accountability.
+They propose an alternative definition of morality that allows including these artificial agents [@floridi2004MoralityArtificialAgents]:
+
+> An action is said to be morally qualifiable if and only if it can cause moral good or evil. An agent is said to be a moral agent if and only if it is capable of morally qualifiable action.
+
+In order to make artificial agents capable to take morally good actions, rather than evil, we argue they need to receive ethical considerations, from those who possess them, i.e., humans.
+We will refer to this as the *ethical injection*, of which the particular form depends on the specificities of employed AI techniques, the envisioned use-case, etc.
+
+The second assumption is that, although we share similar moral values, human ethical preferences are contextualized.
+They are different from a person to another, and between different situations.
+This means that, on the one hand, the ethical injection must be sufficiently rich to embed these contextualized preferences, and on the other hand, the artificial agents should learn the different preferences, and exhibit a behaviour consistent with the multiple preferences, instead of a single set.
+
+## Objectives {.unlisted .unnumbered}
+
+In this thesis, we focus on, and solve, the following objectives.
+
+1. Represent and capture the diversity of moral values and ethical preferences within a society.
+    1.  This diversity derives from multiple sources: multiple persons, multiple values, and multiple situations.
+    2.  The currently accepted moral values, and their definitions, i.e., the "consensus" as part of societal norms and mores, may shift overtime.
+2. Learn ethical behaviours, in situations, which are well-aligned with human values.
+    1. Behaviours should consider non-dilemma situations, which may imply ethical stakes, but not necessarily in conflict.
+    2. Behaviours should consider dilemmas situations, with conflicts between stakes.
+    3. The system must learn according to a well-defined specification of the desired behaviour, to avoid "gaming" or mis-alignment.
+3. Implement a prototype use-case to demonstrate the feasibility of the approach.
+
+
+<!-- Hypotheses / Design Choices -->
+To help us solve these objectives, we formulate the following design choices.
+These choices will be partially supported in our State of the Art.
+
+1. Reinforcement Learning (RL) is an appropriate method to learn situational behaviours.
+2. Continuous domains (for both states and actions) allow for more complex environments, including multi-dimensional representations, which would be less practical to implement with discrete domains.
+3. Multi-agent systems can help us address diversity, by representing different persons and encode various moral values.
+4. Agentifying the reward construction paves the way for co-construction, with both artificial agents and humans, as per the general framework, and facilitates adaptation to shifting ethical consensus, as per our objectives.
+
+
+<!-- Research Questions -->
+From the aforementioned design choices and objectives, we pose the following research questions.
+
+<!-- Define RQ in "text references" so we can reuse them later (bookdown feature). -->
+
+(ref:rq1) How to learn behaviours aligned with moral values, using Reinforcement Learning with complex, continuous, and multi-dimensional representations of actions and situations? How to make the multiple learning agents able to adapt their behaviours to changes in the environment?
+
+(ref:rq2) How to guide the learning of agents through the agentification of reward functions, based on several moral values to capture the diversity of stakes?
+
+(ref:rq3) How to learn to address dilemmas in situation, by first identifying them, and then settling them in interaction with human users? How to consider contextualized preferences in various situations of conflicts between multiple moral values?
+
+1. (ref:rq1)
+
+2. (ref:rq2)
+
+3. (ref:rq3)
+
+<!-- Contributions -->
+We present 3 contributions that aim to answer our research questions ; they are briefly introduced here.
+
+1. Two RL algorithms that learn behaviours "in general" (without emphasis on dilemmas), using continuous domains, and particularly focusing on adaptation to changes, both in the environment dynamics and the reward functions.
+
+2. A hybrid method relying on symbolic judgments to construct the reward function from multiple moral values, focusing on the understandability of the resulting function.
+
+3. A multi-objective extension to the RL algorithms that focus on addressing dilemmas, by learning interesting actions for any possible human preferences, identifying situations of dilemma, and learning to settle them explicitly, according to contextualized human preferences.
+
+The table \@ref(tab:table-recap-intro) summarizes the relation between the objectives, hypotheses, research questions and contributions.
+
+
+<!-- Recap Table -->
+```{r table-recap-intro}
+#| tab.cap: >
+#|   Associations between objectives, design choices, research questions, and contributions.
+#|   Objective O3 (implementation of prototype use-case) is transverse to all contributions.
+tribble(
+  ~RQ, ~C, ~obj,
+  "RQ1", "C1", "O1.1",
+  "RQ1", "C1", "O1.2",
+  "RQ1", "C1", "O2.1",
+  "RQ2", "C2", "O1.1",
+  "RQ2", "C2", "O2.3",
+  "RQ3", "C3", "O1.1",
+  "RQ3", "C3", "O2.2"
+) %>%
+  flextable() %>%
+  align(align = "center", part = "all") %>%
+  merge_v() %>%
+  set_header_labels(RQ = "Research Question", C = "Contribution", obj = "Objective") %>%
+  add_footer_lines(paste(c(
+      "RQ1: How to learn behaviours aligned with moral values, using RL, with continuous domains, in a MAS, such that agents are able to adapt to changes?",
+      "RQ2: How to guide the learning through agentification of reward functions, based on several moral values?",
+      "RQ3: How to learn to address dilemmas in situations, according to users' contextualized preferences, in terms of multiple moral values in various situations?",
+      "O1.1: Diversity of ethical stakes",
+      "O1.2: Shifting ethical mores",
+      "O2.1: Learn non-dilemmas",
+      "O2.2: Learn dilemmas",
+      "O2.3: Reward specification",
+      "C1: Rl algorithms ; Learning behaviours ; Continuous domains ; Adaptation",
+      "C2: Symbolic judgments ; Agentification of reward functions ; Multiple judges",
+      "C3: Multi-Objective RL ; Dilemmas ; Interaction with users"
+    ), collapse = "\n")) %>%
+  fontsize(size = 8, part = "footer") %>%
+  autofit() %>%
+  # set_table_properties(width = 1) %>%
+  theme_vanilla()
+```
+
+
+## Plan {.unlisted .unnumbered}
+
+This manuscript is divided into 7 chapters.
+The (current) first one has introduced the context of this thesis, as well as the objectives and research questions.
+
+Chapter \@ref(sota) explores the different research areas related to our work, namely Machine Ethics, Multi-Agent Reinforcement Learning, Multi-Objective Reinforcement Learning, and Hybrid AI.
+It identifies recent advances, and the remaining challenges.
+An analysis and comparison of existing work raises interesting properties to be integrated in our contributions:
+continuous domains, multiple agents, multiple moral values, a hybrid approach, the ability to adapt to changes, and interaction with the user.
+Our problematic, objectives and research questions are detailed in the light of these elements.
+
+Chapter \@ref(positioning) specifies our positioning, methodological approach, presents our architecture conceptually and briefly describes our application case.
+The first part shows our vision of the integration of an artificial intelligence system within a human society, and how to integrate ethical considerations into these systems, through an ethical injection.
+The second part describes our methodology, as a multi-disciplinary approach that we treat incrementally through successive contributions, each validated separately and integrating with the others.
+It also positions our objectives in relation to the challenges identified in the state of the art.
+The third part conceptually presents our architecture, composed of 3 contributions, briefly introduces these contributions, how they are articulated between them, and presents the novelties of our approach.
+Finally, the fourth part presents the application case that we have chosen to validate our contributions: energy distribution within a Smart Grid.
+This presentation will allow us to exemplify each of the contributions and to anchor them in a practical case, although they are conceived as generic, and to facilitate the experiments' description.
+
+Chapter \@ref(learning) presents our first contribution: two reinforcement learning algorithms, Q-SOM and Q-DSOM, dedicated to learning behaviours aligned with moral values.
+These algorithms focus on the use of continuous domains and adaptation to changes in the dynamics of the environment.
+They are evaluated on multiple reward functions, testing various moral values, including functions that combine several values, or whose definition changes after a certain number of time steps.
+
+Chapter \@ref(judgments) presents our second contribution: the agentification of reward functions, to compute these rewards through judgments, made by symbolic agents.
+We propose two ways to do this, the first one through logical rules and Beliefs-Desires-Intentions agents, while the second one uses argumentation graphs.
+In both cases, the moral values are explicitly defined by the system designer, and the judging agents reason about them in order to produce their judgment.
+We compare these two ways and evaluate the ability of agents using our learning algorithms to exhibit behaviours that correspond to these reward functions, i.e., that are aligned with the moral values on which they are based.
+
+Chapter \@ref(dilemmas) presents our third and final contribution, which opens up the reward functions defined earlier to take a multi-objective approach.
+This allows agents to consider each of the moral values directly, and thus to identify situations that put one or other of these values in difficulty.
+We propose a definition of "dilemmas" adapted to our framework, which allows agents to recognize situations in which they are unable to satisfy all moral values at the same time.
+We also modify the learning algorithm so that the agents can offer alternatives to the user in these dilemma situations, i.e., actions that satisfy the moral values to different degrees.
+Finally, the agents learn to perform the actions chosen by the users in similar contexts; we particularly emphasize the contextual aspect of user preferences.
+
+Finally, Chapter \@ref(conclusion) summarizes our contributions, their benefits, and how they address our research questions and objectives.
+It analyzes their various limitations, but also the questions and avenues of research that they open up.

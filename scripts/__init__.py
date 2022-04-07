@@ -1,0 +1,1 @@
+from .smartgrid_load_profiles import load_agent_profile

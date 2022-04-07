@@ -1,10 +1,12 @@
 thesisdown::thesis_pdf:
   includes:
-    # in_header: macros.tex
+     in_header: maths.tex
+  pandoc_args:
+    # - !expr acronymsdown::add_filter()
 thesisdown::thesis_gitbook: 
   includes:
     # in_header: ga.html
-    # before_body: macros.html
+    before_body: mathjax.html
   css: style.css
   anchor_sections: true
   config: 

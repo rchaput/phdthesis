@@ -2,7 +2,7 @@ book_filename: "thesis"
 chapter_name: "Chapter "
 download:
   - ["thesis.pdf", "PDF"]
-delete_merged_file: true
+delete_merged_file: false
 # language:
 #   label:
 #     fig: 'Figure '

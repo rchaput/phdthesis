@@ -1,0 +1,18 @@
+This folder contains the results from the experiments for the 1st contribution:
+the Reinforcement Learning algorithms that learn ethical behaviours "in general",
+with a focus on adaptation.
+
+* `hyperparameters_` files contains scores about various hyperparameters for
+each algorithm. They allow comparing the impact of each hyperparameter on the
+algorithm's score, and determining the best hyperparameters for each algorithm.
+
+* `scores.csv` contains the scores for each algorithm, evaluated with their
+best hyperparameters, on all defined scenarii and reward functions.
+They allow comparing the algorithms between them.
+
+* `agents_details.pkl.xz` contains more detailed results than `scores.csv`.
+Whereas scores are a single value for each run, the details here include the
+agents' individual rewards at each step, for each agent, in every run.
+They allow a better visualization of the agents' behaviours.
+Its format is a compressed (XZ) Pickle (binary) file, to limit the file size
+(the equivalent CSV would be +900M).

@@ -1,3 +1,39 @@
-The preface pretty much says it all.  \par
+The past decades have seen tremendous progress of Artificial Intelligence techniques in many fields, reaching or even exceeding human performance in some of them.
+This has led to computer systems equipped with such AI techniques being deployed from the constrained and artificial environments of laboratories into our human world and society, in order to solve tasks with real and tangible impact.
+These systems have a more or less direct influence on humans, be it their lives in the most extreme cases, or in a more subtle but ubitquitous way, their daily lives.
+This raises questions about their ability to act in accordance with the (moral) values that are important to us.
 
-Second paragraph of abstract starts here.
+Various fields of research have addressed aspects of this problem, such as the ability to provide fair and just decisions, or the ability to be intelligible, thus providing human users with reasons to trust them, and to know when not to trust.
+In this thesis, we focus particularly on the area of *Machine Ethics*, which is concerned with producing systems that have the means to integrate ethical considerations, i.e., systems that make ethical decisions in accordance with the human values that are important to society.
+
+Our aim is thus to propose systems that are able to learn to exhibit behaviours judged as ethical by humans, both in situations of non-conflicting ethical stakes, but also in more complex cases of dilemmas between moral values.
+We propose 3 contributions, each with a different objective, which can be taken independently of each other, but which have been conceived and thought to work together, to combine their benefits, and to address the overall problem.
+
+Firstly, we propose a reinforcement learning algorithm, capable of learning to exhibit behaviours incorporating these ethical considerations from a reward function.
+The goal is to learn these ethical considerations in many situations over time.
+A multi-agent framework is used, which allows on the one hand to increase the richness of the environment, and on the other hand to offer a more realistic simulation, closer to our intrinsically multi-agent human society, in which these approaches are bound to be deployed.
+We are particularly interested in the question of how agents adapt to changes, both to environmental dynamics, such as seasonal changes, but also to variations in the ethical mores commonly accepted by society.
+
+Our second contribution focuses on the design of the reward function to guide the learning of agents.
+We propose to integrate judging agents, based on symbolic reasoning, tasked with judging learning agents' actions, and determining their reward, relatively to a specific moral value.
+The introduction of multiple judging agents makes the existence of multiple moral values explicit.
+Using symbolic judgment facilitates the design by application domain experts, and improves the intelligibility of the produced rewards, providing a window into the motivations that learning agents receive.
+
+Thirdly, we focus more specifically on the question of dilemmas.
+We take advantage of the existence of multiple moral values and associated rewards to provide information to the learning agents, allowing them to explicitly identify those dilemma situations, when 2 (or more) moral values are in conflict and cannot be satisfied at the same time.
+The objective is to learn, on the one hand, to identify them, and, on the other hand, to decide how to settle them, according to the preferences of the system's users.
+These preferences are contextualized, i.e., they depend both on the situation in which the dilemma takes place, and on the user.
+We draw on multi-objective learning techniques to propose an approach capable of recognizing these conflicts, learning to recognize dilemmas that are similar, i.e., those that can be settled in the same way, and finally learning the preferences of users.
+
+We evaluate these contributions on an application use-case that we propose, define, and implement: the allocation of energy within a *smart grid*.
+
+**Keywords**:
+Machine Ethics ;
+Artificial Moral Agents ;
+Multi-Agent Systems ;
+Multi-Agent Reinforcement Learning ;
+Multi-Objective Reinforcement Learning ;
+Ethical Judgment ;
+Hybrid Neural-Symbolic Learning ;
+Moral Dilemmas ;
+Human Preferences

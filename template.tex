@@ -50,7 +50,7 @@
 \newcommand{\thesisUniversityDepartment}{$department$}
 \newcommand{\thesisEdNumber}{$ednumber$}
 \newcommand{\thesisEdName}{$edname$}
-\newcommand{\thesisPrivacy}{publiquement}
+\newcommand{\thesisPrivacy}{$privacy$}
 
 
 % **************************************************
@@ -86,7 +86,8 @@
     pdfsubject={\thesisSubject},%   - subject (PDF meta)
     pdfauthor={\thesisAuthor},  %   - author (PDF meta)
     plainpages=false,           %   -
-    colorlinks=false,           %   - colorize links?
+    colorlinks=true,            %   - colorize links
+    linkcolor=ctcolormain,      %   - color of links ('main' from cleanthesis)
     pdfborder={0 0 0},          %   -
     breaklinks=true,            %   - allow line break inside links
     bookmarksnumbered=true,     %
@@ -103,7 +104,7 @@
 \usepackage{amsmath}
 \usepackage{amssymb,amsthm}
 \usepackage{longtable,booktabs,setspace}
-% \usepackage[hyphens]{url}
+\usepackage{xurl}  % allows more line breaks in URLs
 \usepackage{hyperref}
 \usepackage{lmodern}
 \usepackage{float}
@@ -191,12 +192,8 @@ $for(header-includes)$
 	$header-includes$
 $endfor$
 
-\setlength{\parskip}{0pt}
-
-$if(space_between_paragraphs)$
-  %\setlength{\parskip}{\baselineskip}
-  \usepackage[parfill]{parskip}
-$endif$
+% Line spacing
+%\usepackage{setspace}\onehalfspacing
 
 \providecommand{\tightlist}{%
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
@@ -212,6 +209,7 @@ $endif$
   \newgeometry{margin=1in}
   \begin{titlepage}
   \newpage
+  \setlength{\parskip}{0pt}
 
   \begin{figure}
     \centering
@@ -327,51 +325,83 @@ $endif$
 
 \pagestyle{plain}				% display just page numbers
 
+% Add a fake chapter for the "bookmarks"
+\pdfbookmark[0]{Preliminary content}{Preliminary content}
+
 % Abstract
 $if(abstract)$
-  \begin{abstract}
-    $abstract$
-  \end{abstract}
+  \pdfbookmark[1]{Abstract}{Abstract}
+  \addchap*{Abstract}
+  \label{sec:abstract}
+  $abstract$
+$endif$
+
+$if(abstract_fr)$
+  % We must use \detokenize because of the special characters
+  \pdfbookmark[1]{Résumé (Fr)}{\detokenize{Résumé (Fr)}}
+  \addchap*{Résumé (Fr)}
+%  {\usekomafont{chapter}Résumé (Fr)}
+  \label{sec:abstract-fr}
+  $abstract_fr$
 $endif$
 \cleardoublepage
 
+$if(summary_fr)$
+  % We must use \detokenize because of the special characters
+  \pdfbookmark[1]{Résumé substantiel}{\detokenize{Résumé substantiel}}
+  \addchap*{Résumé substantiel}
+  \label{sec:summary-fr}
+  $summary_fr$
+  \cleardoublepage
+$endif$
+
 % Acknowledgments
-% $if(acknowledgements)$
-%   \begin{acknowledgements}
-%     $acknowledgements$
-%   \end{acknowledgements}
-% $endif$
-% \cleardoublepage
+$if(acknowledgements)$
+  \pdfbookmark[1]{Acknowledgments}{Acknowledgments}
+  \addchap*{Acknowledgments}
+  \label{sec:acknowledgments}
+  $acknowledgements$
+  \cleardoublepage
+$endif$
 
 % Preface
-% $if(preface)$
-%   \begin{preface}
-%     $preface$
-%   \end{preface}
-% $endif$
+$if(preface)$
+  \pdfbookmark[1]{Preface}{Preface}
+  \addchap*{Preface}
+  \label{sec:preface}
+  $preface$
+  \cleardoublepage
+$endif$
 
 % Dedication
-% $if(dedication)$
-%   \begin{dedication}
-%     $dedication$
-%   \end{dedication}
-% $endif$
+$if(dedication)$
+  \pdfbookmark[1]{Dedication}{Dedication}
+  \addchap*{Dedication}
+  \label{sec:dedication}
+  $dedication$
+  \cleardoublepage
+$endif$
 
 % Table of contents, figures, listings, ...
+% We encapsulate in a group with hypersetup to disable links color temporarily
+\begingroup
+\hypersetup{linkcolor=black}
+% Temporarily set the ToC level to 1 so that bookmarks go under the "Preliminary content" fake-chapter
+\makeatletter
+\def\toclevel@chapter{1}
+\makeatother
 \currentpdfbookmark{\contentsname}{toc}
 \setcounter{tocdepth}{2}		% define depth of toc
-$if(toc)$
   \tableofcontents				% display table of contents
-$endif$
-$if(lof)$
   \listoffigures
-$endif$
-$if(lot)$
   \listoftables
-$endif$
-$if(lol)$
-  \lstlistoflistings
-$endif$
+% TODO: Listings (algorithms) do not appear in the list of listings!
+%  \lstlistoflistings
+% Revert the ToC level to 0
+\makeatletter
+\def\toclevel@chapter{0}
+\makeatother
+\endgroup
 \cleardoublepage
 
 % --------------------------
@@ -392,9 +422,7 @@ $body$
 \renewcommand{\bibfont}{\normalfont\small}
 \setlength{\biblabelsep}{0pt}
 \setlength{\bibitemsep}{0.5\baselineskip plus 0.5\baselineskip}
-\printbibliography[nottype=online]
-\newrefcontext[labelprefix={@}]
-\printbibliography[heading=subbibliography,title={Webpages},type=online]
+\printbibliography
 }
 \cleardoublepage
 
@@ -449,27 +477,6 @@ $body$
 % ************************
 %%% parskip-related config
 % ************************
-
-
-% ************************
-%%% front matter
-% ************************
-% \Acknowledgements{
-% $acknowledgements$
-% }
-% 
-% \Dedication{
-% $dedication$
-% }
-% 
-% \Preface{
-% $preface$
-% }
-% 
-% \Abstract{
-% $abstract$
-% }
-
 
 % \frontmatter % this stuff will be roman-numbered
 % \pagestyle{empty} % this removes page numbers from the frontmatter

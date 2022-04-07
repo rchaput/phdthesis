@@ -1,0 +1,867 @@
+# Learning behaviours {#learning}
+
+## Overview {#learning-overview}
+
+We recall that the aim of this first contribution is to answer the first research question: (ref:rq1)
+
+To do so, we propose 2 Reinforcement Learning algorithms.
+The algorithms are based on an existing work [@smith2002applications; @smith2002dynamic] that we extend and evaluate in a more complex use-case.
+They are meant as a first step, a building basis on top of which we will add improvements and features throughout our next contributions.
+
+In order to facilitate these improvements, we chose to implement them using a modular approach, rather than an end-to-end architecture, as is often found in Deep Neural Networks.
+Such networks, while achieving impressive performance on their task, can be difficult to reuse and modify.
+As we will see in the results, our algorithms obtain similar or even better performance.
+
+As per our hypothesis, and as supported in our state of the art of Machine Ethics, we focused on continuous multi-dimensional domains, for both states and actions.
+Smith's initial work proposed to leverage Self-Organizing Maps to handle these continuous domains.
+In this chapter, we first explain what are Self-Organizing Maps, the Dynamic Self-Organizing Map variation, and how we can use them.
+Then, we describe our extension of Smith's algorithm, that we name *Q-SOM*, and a new algorithm, *Q-DSOM*.
+Finally, we detail the experiment setup, and report the results.
+A discussion of these algorithms' advantages and drawbacks is presented.
+
+Figure \@ref(fig:learning1-schema) presents a summarizing schema of our proposed algorithms.
+
+```{drawio learning1-schema, src="figure/contribution1_learning.drawio", out.width = "100%"}
+#| fig.cap: >
+#|   Architecture of the Q-SOM and Q-DSOM algorithms, which consist of a
+#|   decision and learning processes. The processes rely on a State-(D)SOM,
+#|   an Action-(D)SOM, and a Q-Table.
+```
+
+## (Dynamic) Self-Organizing Maps
+
+A Self-Organizing Map (SOM) [@kohonen1990self] is an artificial neural network that can be used for unsupervised learning of representations for high-dimensional data.
+SOMs contain a fixed set of neurons, typically arranged in a rectangular 2D grid, which are associated to a unique identifier, e.g., neuron #1, neuron #2, etc., and a vector, named the "prototype vector".
+Prototype vectors lie in the latent space, which is the highly dimensional space the SOM must learn to represent.
+
+The goal is to learn to represent as closely as possible the distribution of data within the latent space, based on the input data set.
+To do so, prototype vectors are incrementally updated and "moved" towards the different regions of the latent space that contain the most data points.
+Each time an input vector, or data point, is presented to the map, the neurons compete for attention: the one with the closest prototype vector to the input vector is named the *Best Matching Unit* (BMU).
+Neurons' prototypes are then updated, based on their distance to the BMU and the input vector.
+By doing this, the neurons that are closest to the input vector are moved towards it, whereas the farthest neurons receive little to no modification, and thus can focus on representing different parts of the latent space.
+
+As the number of presented data points increases, the distortion, i.e., the distance between each data point and its closest prototype, diminishes.
+In other words, neurons' prototypes are increasingly closer to the real (unknown) distribution of data.
+
+When the map is sufficiently learned, it can be used to perform a mapping of high dimensional data points into a lower dimension.
+Each neuron represents the data points that are closest to its prototype vector.
+Conversely, each data point is represented by the neuron which prototype is the closest to its own vector.
+
+This property of SOMs allows us to handle continuous, and multi-dimensional state and action spaces.
+
+Figure \@ref(fig:som-training) summarizes and illustrates the training of a SOM.
+The blue shape represents the data distribution that we wish to learn, from a 2D space for easier visualization.
+Typically, data would live in higher dimension spaces.
+Within the data distribution, a white disc shows the data point that is presented to the SOM at the current iteration step.
+The SOM neurons, represented by black nodes, and their neighborhood by black edges, are updated towards the current data point.
+Among them, the Best Matching Unit, identified by an opaque yellow disc, is the closest to the current data point, and as such receives the most important update.
+The closest neighbors of the BMU, identified by the larger yellow transparent disc, are also slightly updated.
+Farther neurons are almost not updated.
+After some number of iterations, the last step shows that the SOM correctly learned to represent the data distribution.
+
+```{r som-training}
+#| fig.cap: |
+#|  Training of a SOM, illustrated on several steps.
+#|  Image extracted from https://en.wikipedia.org/wiki/Self-organizing_map
+knitr::include_graphics("figure/somtraining.svg", auto_pdf = TRUE)
+```
+
+The update received by a neuron is determined by Equation \@ref(eq:som-update), with $v$ being the index of the neuron, $\mathbf{W_v}$ is the prototype vector of neuron $v$, $\mathbf{D_t}$ is the data point presented to the SOM at step $t$. $u$ is the index of the Best Matching Unit, i.e., the neuron that satisfies $u = \argmin_{\forall v} \left\|\mathbf{D_t} - \mathbf{W_v}\right\|$.
+
+\begin{equation}
+  \mathbf{W_{v}^{t+1}} \gets \mathbf{W_{v}^{t}} + \theta(u, v, t) \alpha(t) \left(\mathbf{D_t} - \mathbf{W_{v}^{t}}\right)
+  (\#eq:som-update)
+\end{equation}
+
+In this equation, $\theta$ is the neighborhood function, which is typically a gaussian centered on the BMU ($u$), such that the BMU is the most updated, its closest neighbors are slightly updated, and farther neurons are not updated.
+The learning rate $\alpha$, and the neighborhood function $\theta$ both depends on the time step $t$: they are often monotonically decreasing, in order to force the neurons' convergence and stability.
+
+One of the numerous extensions of the Self-Organizing Map is the Dynamic Self-Organizing Map (DSOM) [@rougier2011dynamic].
+The idea behind DSOMs is that self-organization should offer both stability, when the input data does not change much, and dynamism, when there is a sudden change.
+This stems from neurological inspiration, since the human brain is able to both stabilize after the early years of development, and dynamically re-organize itself and adapt when lesions occur.
+
+As we mentioned, the SOM enforces stability through decreasing parameters (learning rate and neighborhood), however this also prevents dynamism.
+Indeed, as the parameters approach $0$, the vectors' updates become negligible, and the system does not adapt any more, even when faced with an abrupt change in the data distribution.
+
+DSOMs propose to replace the time-dependent parameters by a time-invariant one, named the *elasticity*, which determines the coupling of neurons.
+Whereas SOMs and other similar algorithms try to learn the density of data, DSOMs focus on the structure the data space, and the map will not try to place several neurons in a high-density region.
+In other words, if a neuron is considered as sufficiently close to the input data point, the DSOM will not update the other neurons, assuming that this region of the latent space is already quite represented by this neuron.
+The "sufficiently close" is determined through the elasticity parameter: with high elasticity, neurons are tightly coupled with each other, whereas lower elasticity let neurons spread out over the whole latent space.
+
+DSOMs replace the update equation with the following:
+
+\begin{equation}
+  \mathbf{W_i^{t+1}} \leftarrow \alpha\left\|\mathbf{D_t} - \mathbf{W_i^t}\right\|h_{\eta}(i, u, \mathbf{D_t})\left(\mathbf{D_t} - \mathbf{W_i^t}\right)
+  (\#eq:dsom-update)
+\end{equation}
+
+\begin{equation}
+  h_{\eta}(i, u, \mathbf{D_t}) = \exp\left( - \frac{1}{\eta^{2}} \frac{\left\| p_i - p_u \right\|^{2}}{\left\| \mathbf{D_t} - \mathbf{W_u} \right\|^{2}} \right)
+  (\#eq:dsom-elasticity)
+\end{equation}
+
+where $\alpha$ is the learning rate, $i$ is the id of the currently updated neuron, $\mathbf{D_t}$ is the current data point, $u$ is the best matching unit, $\eta$ is the elasticity parameter, $h_{\eta}$ is the neighborhood function, and $p_i$, $p_u$ are respectively the positions of the neurons $i$ and $u$ in the grid (not in the latent space).
+Intuitively, the distance between $p_i$ and $p_u$ is the minimal number of consecutive neighbors that form a path between $i$ and $u$.
+
+## The Q-SOM and Q-DSOM algorithms {#learning-algorithms}
+
+We take inspiration from Decentralized Partially-Observable Markovian Decision Processes (DecPOMDPs) to formally describe our proposed algorithms.
+DecPOMDPs are an extension of the well-known Markovian Decision Process (MDP) that considers multiple agents taking repeated decisions in multiple states of an environment, by receiving only partial observations about the current state.
+In contrast with the original DecPOMDP as described by Bernstein [@bernstein2002complexity], we explicitly define the set of learning agents, and we assume that agents receive (different) individual rewards, instead of a team reward.
+
+```{definition decpomdp, name="DecPOMDP"}
+A Decentralized Partially-Observable Markovian Decision Process is a tuple
+$\left\langle \mathbb{L}, \mathbb{S}, \mathbb{A}, \texttt{T}, \mathbb{O}, \texttt{O}, \texttt{R}, \gamma \right\rangle$,
+where:
+
+- $\mathbb{L}$ is the set of learning agents, of size $n = \left|\mathbb{L}\right|$.
+- $\mathbb{S}$ is the state space, i.e., the set of states that the environment can possibly be in.
+  States are not directly accessible to learning agents.
+- $\mathbb{A}_l$ is the set of actions accessible to agent $l$, $\forall l \in \mathbb{L}$ as all agents take individual actions.
+  We consider multi-dimensional and continuous actions, thus we have $\mathbb{A}_{l} \subseteq \mathbb{R}^d$, with $d$ the number of dimensions, which depends on the application use-case.
+- $\mathbb{A}$ is the action space, i.e., the set of joint-actions that can be taken at each time step.
+  A joint-action is the combination of all agents' actions, i.e., $\mathbb{A} = \mathbb{A}_{1} \times \cdots \times \mathbb{A}_{n}$.
+- $\texttt{T}$ is the transition function, defined as $\texttt{T} : \mathbb{S} \times \mathbb{A} \times \mathbb{S} \rightarrow [0,1]$.
+  In other words, $\texttt{T}(\mathbf{s}' | \mathbf{s}, \mathbf{a})$ is the probability of obtaining state $\mathbf{s}'$ after taking the action $\mathbf{a}$ in state $\mathbf{s}$.
+- $\mathbb{O}$ is the observation space, i.e., the set of possible observations that agents can receive.
+  An observation is a partial information about the current state. Similarly to actions, we define $\mathbb{O}_{l}$ as the observation space for learning agent $l$, $\forall l \in \mathbb{L}$.
+  As well as actions, observations are multi-dimensional and continuous, thus we have $\mathbb{O}_{l} \subseteq \mathbb{R}^{g}$, with $g$ the number of dimensions, which depends on the application use-case.
+- $\texttt{O}$ is the observation probability function, defined as $\texttt{O} : \mathbb{O} \times \mathbb{S} \times \mathbb{A} \rightarrow [0,1]$, i.e., $\texttt{O}(\mathbf{o} | \mathbf{s}', \mathbf{a})$ is the probability of receiving the observations $\mathbf{o}$ after taking the action $\mathbf{a}$ and arriving in state $\mathbf{s}'$.
+- $\texttt{R}$ is the reward function, defined as $\forall l \in \mathbb{L} \quad \texttt{R}_{l} : \mathbb{S} \times \mathbb{A}_l \rightarrow \mathbb{R}$.
+  Typically, the reward function itself will be the same for all agents, however, agents are rewarded individually, based on their own contribution to the environment through their action.
+  In other words, $\texttt{R}_{l}(\mathbf{s}, \mathbf{a}_{l})$ is the reward that learning agent $l$ receives for taking the action $\mathbf{a}_{l}$ in state $\mathbf{s}$.
+- $\gamma$ is the discount factor, to allow for potentially infinite horizon of time steps, with $\gamma \in [0,1[$.
+```
+
+The RL algorithm must learn a strategy $\pi_{l}$, defined as $\pi_{l} : \mathbb{O}_{l} \times \mathbb{A}_{l} \rightarrow [0,1]$.
+In other words, given the observations $\mathbf{o}_{l}$ received by an agent $l$, $\pi(\mathbf{o}_{l}, \mathbf{a})$ is the probability that agent $l$ will take action $\mathbf{a}$.
+
+We recall that observations and actions are vectors of floating numbers, the RL algorithm must therefore handle this accordingly.
+To do so, we take inspiration from an existing work [@smith2002applications; @smith2002dynamic] and propose to use variants of Self-Organizing Maps (SOMs) [@kohonen1990self].
+
+We can leverage SOMs to learn to handle the observation and action spaces: neurons learn the topology of the latent space and create a discretization.
+By associating each neuron with a unique id, we are able to discretize the multi-dimensional data: each data point is recognized by its closest neuron, and thus is represented by a discrete identifier, i.e., the neuron's id.
+
+The proposed algorithms are thus based on 2 SOMs, the State-SOM, and the Action-SOM, which are associated to a Q-Table.
+The Q-Table is the central component of the well-known Q-Learning algorithm [@watkins1992qlearning], and is tasked with representing and learning the interest, or value, of each action in each state.
+To do so, states are represented as rows of the table, whereas actions are represented as columns.
+The $\texttt{Q}(i,j)$ value is therefore the interest of the $j$-th action in the $i$-th state.
+
+From this definition, it can be seen that the Q-Table only deals with discrete states and actions.
+To handle our continuous observations and actions, we use the discrete neurons' identifiers as explained previously.
+The Q-Table's dimensions thus depend on the (D)SOMs' number of neurons: the Q-Table has exactly as many rows as the State-(D)SOM has neurons, and exactly as many columns as the Action-(D)SOM has neurons, such that each neuron is represented by a row or column, and reciprocally.
+
+Our algorithms are separated into 2 distinct parts: the *decision* process, which choses an action from received observations about the environment, and the *learning* process, which updates the algorithms' data structures, so that the next decision step will yield a better action.
+We present in details these 2 parts below.
+
+### The decision process
+
+```{algorithm qsom-decision-alg, fig.cap = "Decision algorithm"}
+\newcommand\mycommfont[1]{\footnotesize\ttfamily\textcolor{gray}{#1}}
+\SetCommentSty{mycommfont}
+\DontPrintSemicolon
+\SetAlgoLined
+
+\SetKwFunction{FnDecision}{decision}
+\SetKwProg{Fn}{Function}{:}{end}
+
+\Fn{\FnDecision{}}{
+  \KwData{\\
+    $\quad \mathbf{U}$ the neurons in the State-SOM\\
+    $\quad \mathbf{W}$ the neurons in the Action-SOM\\
+    $\quad \tau$ the Boltzmann's temperature\\
+    $\quad \epsilon$ Noise control parameter}
+  \KwIn{Observations $\mathbf{o}$}
+  \KwOut{An action $\mathbf{a}$}
+
+  \tcc{Determine the Best Matching Unit, closest neuron from the State-SOM to the observations}
+  $s \gets \argmin_{i} || \mathbf{o} - \mathbf{U_{i}} ||$\;
+  \tcc{Choose action identifier using Boltzmann probabilities}
+  Let P be the Boltzmann distribution over the Q-Values. We draw a random variable X from P, and we denote the probability that X equals a given value j $P(X = j)$.\;
+  Draw $j \sim P(X = j) = \frac{\frac{exp(\texttt{Q}(s,j))}{\tau}}{\sum_{k = 1}^{\left| \mathbf{W} \right|} \frac{exp(\texttt{Q}(s,k))}{\tau}}$\;
+  Let $\mathbf{W_j}$ be the chosen action's parameters\;
+  \tcc{Randomly noise the action's parameters to explore}
+  \For{$k \in$ all dimensions of $\mathbf{W_j}$}{
+    $\mathit{noise} \sim \mathcal{N}(0, \sigma^2)$\;
+    $W'_{j,k} \gets W_{j,k} + \mathit{noise}$\;
+  }
+  \KwRet{$\mathbf{a} \gets \mathbf{W'_j}$}
+}
+```
+
+```{drawio qsom-decision-schema, src="figure/decision_process.drawio", out.width = "100%"}
+#| fig.cap: >
+#|   Dataflow of the Q-(D)SOM decision process.
+# TODO: change the colors to match the more general schema
+```
+
+We now explain the decision process that allows an agent to choose an action from received observations, which is described formally in Algorithm \@ref(fig:qsom-decision-alg) and represented in Figure \@ref(fig:qsom-decision-schema).
+First, we need to obtain a discrete identifier from an observation $\mathbf{o}$ that is a vector $\in \mathbb{R}^{g}$, in order to access the Q-Table.
+To do so, we look for the Best Matching Unit (BMU), i.e., the neuron whose prototype vector is the closest to the observations, from the State-SOM, which is the SOM tasked with learning the observation space.
+The unique id of the BMU is used as the state identifier $s$.
+
+We call this identifier a "state hypothesis", and we use it to navigate the Q-Table and obtain the expected interest of each action, assuming we have correctly identified the state.
+Knowing these interests $\texttt{Q}(s,.)$ for all actions, we can assign a probability of taking each one, using a Boltzmann distribution.
+Boltzmann is a well-known and used method in RL that helps with the exploration-exploitation dilemma.
+Indeed, as we have seen in Section \@ref(sota-rl), agents should try and maximize their expectancy of received rewards, which means they should *exploit* high-rewarding actions, i.e., those with a high interest.
+However, the true interest of the action is not known to agents: they have to discover it incrementally by trying actions into the environment, in various situations, and memorizing the associated reward.
+If they only choose the action with the maximum interest, they risk focusing on few actions, thus not exploring the others.
+By not sufficiently exploring, they maintain the phenomenon, as not explored actions will stay at a low interest, reducing their probability of being chosen, and so on.
+Using Boltzmann mitigates this problem, by giving closer probabilities to close interests.
+Even actions with low interests have a non-zero probability of being chosen.
+
+The Boltzmann probability of an action $j$ being selected is computed based on the action's interest, in the current state, relatively to all other actions' interests, as follows:
+
+\begin{equation}
+  P(X = j) =
+\frac{
+  \frac{\exp(\texttt{Q}(s,j))}{\tau}
+  }{\sum_{k} \frac{\exp(\texttt{Q}(s,k))}{\tau}}
+  (\#eq:boltzmann-probabilities)
+\end{equation}
+
+Traditionally, the Boltzmann parameter $\tau$ should be decreasing over the time steps, such that the probabilities of high-interest actions will rise, whereas low-interest actions will converge towards a probability of $0$.
+This mechanism ensures the convergence of the agents' policy towards the optimal one, by reducing the exploration in later steps, in favour of exploitation.
+However, and as we have already mentioned, we chose to disable the convergence mechanisms in our algorithms, because it prevents the continuous learning and adaptation, by definition.
+
+We draw an action identifier $j$ from the list of possible actions, according to the Boltzmann probabilities.
+From this discrete identifier, we get the action's parameters from the Action-SOM, which is tasked with learning the action space.
+We retrieve the neuron with identifier $j$, and take its prototype vector as the proposed action's parameters.
+
+We can note that this is somewhat symmetrical to what is done with the State-SOM.
+To learn the State-SOM, we use the data points, i.e., the observations, that come from the environment ; to obtain a discrete identifier, we take the neurone with the closest prototype.
+For the Action-SOM, we start with a discrete identifier, and we take the prototype of the neuron with this identifier.
+However, we need to learn what are those prototype vectors.
+We do not have data points as for the State-SOM, since we do not know what is the "correct" action in each situation.
+In order to learn better actions, we apply an exploration step after choosing an action: the action's parameters are perturbed by a random noise.
+
+In the original work of @smith2002applications, the noise was taken from a uniform distribution $\mathcal{U}_{[-\epsilon,+\epsilon]}$, which we will call the *epsilon* method in our experiments.
+However, in our algorithms, we implemented a normal, or *gaussian*, random distribution $\mathcal{N}(\mu, \sigma^2)$, where $\mu$ is the mean, which we set to $0$ so that the distribution ranges over both negative and positive values, and $\sigma$ is the standard deviation.
+The advantage over the uniform distribution is to have a higher probability of a small noise, thus exploring very close actions, while still allowing for a few rare but longer "jumps" in the action space.
+These longer jumps may help to escape local extremas, but should be rare, so as to slowly converge towards optimal actions most of the time, without overshooting them.
+This was not permitted by the uniform distribution, as the probability is the same for each value in the range $[-\epsilon,+\epsilon]$.
+
+The noised action's parameters are considered as the chosen action by the decision process, and the agent executes this action in the environment.
+
+### The learning process
+
+After all agents executed their action, and the environment simulated the new state, agents receive a reward signal which indicates to which degree their action was a "good one".
+From this reward, agents should improve their behaviour so that their next choice will be better.
+The learning process that makes this possible is formally described in Algorithm \@ref(fig:qsom-learning), and we detail it below.
+
+First, we update the Action-(D)SOM.
+Remember that we do not have the ground-truth for actions: we do not know which parameters yield the best rewards.
+Moreover, we explored the action space by randomly noising the proposed action ; it is possible that the perturbed action is actually worse than the learned one.
+In this case, we do not want to update the Action-(D)SOM, as this would worsen the agent's performances.
+We thus determine whether the perturbed action is better than the proposed action by comparing the received reward with the memorized interest of the proposed action, using the following equation:
+
+\begin{equation}
+  r + \gamma \max_{j'} Q(s',j') \stackrel{?}{>} Q(s,j)
+  (\#eq:interesting-proposed-action)
+\end{equation}
+
+If the perturbed action is deemed better than the proposed one, we update the Action-(D)SOM towards the perturbed action.
+To do so, we assume that the Best Matching Unit (BMU), i.e., the center of the neighborhood, is the neuron that was selected at the decision step, $j$.
+We then apply the according update equation, Equation \@ref(eq:som-update) for a SOM, or Equation \@ref(eq:dsom-update) for a DSOM, to move the neurons' prototypes towards the perturbed action.
+
+Secondly, we update the actions' interests, i.e., the Q-Table.
+To do so, we rely on the traditional Bellman's equation that we presented in the State of the Art: Equation \@ref(eq:bellman).
+However, Smith's algorithm introduces a difference in this equation to increase the learning speed.
+Indeed, the State- and Action-(D)SOMs offer additional knowledge about the states and actions: as they are discrete identifiers mapping to continuous vectors in a latent space, we can define a notion of *similarity* between states (resp. actions) by measuring the distance between the states' vectors (resp. actions' vectors).
+Similar states and actions will most likely have a similar interest, and thus each Q-Value is updated at each time step, instead of only the current state-action pair, by taking into account the neighborhoods of the State- and Action-(D)SOMs.
+Equation \@ref(eq:neighborhood-bellman) shows the resulting formula:
+
+\begin{equation}
+  \texttt{Q}_{t+1}(s,j) \leftarrow \alpha \psi_{U}(s) \psi_{W}(j) \left[r + \gamma \max_{j'} \texttt{Q}_{t}(s',j') \right] + (1 - \alpha)\texttt{Q}_{t}(s,j)
+  (\#eq:neighborhood-bellman)
+\end{equation}
+
+where $s$ was the state hypothesis at step $t$, $j$ was the chosen action identifier, $r$ is the received reward, $s'$ is the state hypothesis at step $t+1$ (from the new observations).
+$\psi_U(s) and \psi_W(j)$ represent, respectively, the neighborhood of the State- and Action-(D)SOMs, centered on the state $s$ and the chosen action identifier $j$.
+Intuitively, the equation takes into account the interest of arriving in this new state, based on the maximum interest of actions available in the new state.
+This means that an action could yield a medium reward by itself, but still be very interesting because it allows to take actions with higher interests.
+On the contrary, an action with a high reward, but leading to a state with only catastrophic actions would have a low interest.
+
+Finally, we learn the State-SOM, which is a very simple step.
+Indeed, we have already mentioned that we know data points, i.e., observations, that have been sampled from the distribution of states by the environment.
+Therefore, we simply update the neurons' prototypes toward the received observation at the previous step.
+Prototype vectors are updated based on both their own distance to the data point, within the latent space, and the distance between their neuron and the best matching unit, within the 2D grid neighborhood.
+This ensures that the State-SOM learns to represent states which appear in the environment.
+
+```{algorithm qsom-learning, fig.cap = "Learning algorithm"}
+\newcommand\mycommfont[1]{\footnotesize\ttfamily\textcolor{gray}{#1}}
+\SetCommentSty{mycommfont}
+\DontPrintSemicolon
+\SetAlgoLined
+
+\SetKwFunction{FnLearning}{learning}
+\SetKwProg{Fn}{Function}{:}{end}
+%\SetKwInput{KwHyperparams}{Hyperparameters}
+%\SetKwInput{KwProcedures}{Procedures}
+
+% TODO: add hyperparameters, explain functions such as cU cW (replace by p ?)
+
+\Fn{\FnLearning{}}{
+  \KwData{\\
+    $\quad \mathbf{U}$ the neurons in the State-SOM\\
+    $\quad \mathbf{W}$ the neurons in the Action-SOM\\
+    $\quad \texttt{p}_U(m)$ is the position of neuron $m$ in the State-SOM grid\\
+    $\quad \texttt{p}_W{n}$ is the position of neuron $n$ in the Action-SOM grid\\
+    $\quad \tau$ the Boltzmann's temperature\\
+    $\quad \epsilon$ Noise control parameter\\
+  }
+  \KwIn{\\
+    $\quad$ Previous observations $\mathbf{o}$\\
+    $\quad$ New observations $\mathbf{o}'$\\
+    $\quad$ Received reward $r$\\
+    $\quad$ Chosen action identifier $j$\\
+    $\quad$ Chosen action parameters $\mathbf{a}$}
+
+  \tcc{Compute the neighborhood of neurons}
+  $\forall m \in \mathbb{U} \quad \psi_{U}(m) \gets exp\left(-\frac{1}{\eta_{U}^{2}}\frac{\norm{\texttt{p}_{U}(m) - \texttt{p}_{U}(s)}}{\norm{p - \mathbf{U}_i}}\right)$\;
+  $\forall n \in \mathbb{W} \quad \psi_{W}(n) \gets exp\left(-\frac{1}{\eta_{W}^{2}}\frac{\norm{c_{W}(n) - c_{W}(j)}}{\norm{a - \mathbf{W}_j}}\right)$\;
+  \tcc{If the action was interesting}
+  \If{$r + \gamma \max_{j'} Q(s',j') \stackrel{?}{>} Q(s,j)$}{
+    \tcc{Update the Action-SOM}
+    % TODO: check this equation ; ensure it corresponds to our code
+    $\mathbf{W_{j}} \gets \alpha_{W}\norm{\mathbf{a} - \mathbf{W_{j}}}\psi_{W}(j)\left(\mathbf{a} - \mathbf{W_{j}}\right) + \mathbf{W_{j}}$\;
+  }
+  \tcc{Update the Q-Table}
+  $Q_{s,j} \gets \alpha_{Q}\psi_{U}(s)\psi_{W}(j)\left[r + \gamma \max_{j'}\left(Q_{i',j'}\right) - Q_{s,j}\right] + Q_{s,j}$\;
+  \tcc{Update the State-SOM}
+  \ForAll{neuron $k \in \mathbb{U}$}{
+    $\mathbf{U_{k}} \gets \alpha_{U}\norm{\mathbf{o} - \mathbf{U_{k}}}\psi_{U}(k)\left(\mathbf{o} - \mathbf{U_{k}}\right) + \mathbf{U_{k}}$\;
+  }
+}
+```
+
+::: {.remark}
+In the presented algorithm, the neighborhood and update formulas correspond to a SOM.
+When using the Q-DSOM algorithm, these formulas must be replaced by their DSOM equivalents.
+The general structure of the algorithm, i.e., the steps and the order in which they are taken, stays the same.
+:::
+
+## Experiments {#learning-experiments}
+
+In order to validate our proposed algorithms, we ran some experiments on our Smart Grid use-case that we presented in \@ref(positioning-smartgrid).
+
+First, let us apply the algorithms and formal model on this specific use-case.
+The observation space, $\mathbb{O}$, is composed of the information that agents receive: the hour, the available, energy, their personal battery storage, ...
+These values range from 0 to 1, and we have 11 such values, thus we define $\mathbb{O}_l = [0,1]^{11}$.
+
+Similarly, actions are defined by multiple parameters: consume energy from grid, consume from battery, sell, ...
+To simplify the learning of actions, we constrain these parameters to the $[0,1]$ range ; they are scaled to the true agent's action range outside the learning and decision processes.
+For example, let us imagine an agent with an action range of $6,000$, and an action parameter, as outputted by the decision process, of $0.5$, the scaled action parameter will be $0.5 \times 6,000 = 3,000$.
+We have 6 actions parameters, and thus define $\mathbb{A}_l = [0,1]^{6}$.
+
+In the sequel, we present the reward functions that we implemented to test our algorithms, as well as the experiments' scenarii.
+Finally, we quickly describe the 2 algorithms that we chose as baselines: *DDPG* and *MADDPG*.
+
+### Reward functions {#learning-experiments-rewards}
+
+We implemented multiple reward functions that each focus on different ethical stakes.
+Most of them are based on the principle of Difference Reward [@yliniemi2014multi] to facilitate the Credit Assignment, as discussed in Section \@ref(sota-marl-cap).
+Additionally, 2 functions focus on multiple objectives, but with a rather naïve approach (see our next contributions for a better approach), and another 2 focus on adaptation, i.e., the agents' capacity to adapt their behaviour to changing mores, by making the reward function artificially change at a fixed point in time.
+
+We give an intuitive definition and a mathematical formula for each of these reward functions below.
+
+Equity
+: Determine the agent's contribution to the society's equity, by comparing the current equity with the equity if the agent did not act. The agent's goal is thus to maximize the society's equity.
+: $\texttt{R}_{eq}(agent) = (1 - \texttt{Hoover}(Comforts)) - (1 - \texttt{Hoover}(Comforts \setminus \{agent\}))$
+
+Over-Consumption
+: Determine the agent's contribution to the over-consumption, by comparing the current over-consumed amount of energy, with the amount that would have been over-consumed if the agent did not act. The agent's goal is thus to minimize the society's over-consumption.
+: $\texttt{R}_{oc}(agent) = 1 - \frac{OC}{\sum_{\forall a} (Consumed_{a} + Stored_{a})} - \frac{OC - (Consumed_{agent} + Stored_{agent})}{\sum_{\forall a \neq agent} (Consumed_{a} + Stored_{a})}$
+
+Comfort
+: Simply return the agent's comfort, so that agents aim to maximize their comfort. This intuitively does not seem like an ethical stake, however it can be linked to Schwartz' "hedonistic" value, and therefore is an ethical stake, focused on the individual aspect. We will mainly use this reward function in combination with others that focus on the societal aspect, to demonstrate the algorithms' capacity to learn opposed values.
+: $\texttt{R}_{comfort}(agent) = Comforts_{agent}$
+
+Multi-Objective Sum
+: A first and simple reward function that combines multiple objectives, namely the over-consumption and the comfort. The goal of agents is thus to both minimize the society's over-consumption while maximizing their own comfort. This may be a difficult task, since agents will over-consume if they all try to maximize their comfort. On the contrary, reducing the over-consumption means they need to diminish their comfort. There is thus a trade-off to be achieved between over-consumption and comfort.
+: $\texttt{R}_{mos}(agent) = 0.8 \times \texttt{R}_{oc}(agent) + 0.2 \times \texttt{R}_{comfort}(agent)$
+
+Multi-Objective Product
+: A second, but also simple, multi-objective reward functions. Instead of using a weighted sum, we multiply the reward together. This function is more punitive than the sum, as a low reward cannot be "compensated". For example, let us consider a vector of reward components $[0.1, 0.9]$. Using the weighted sum, the result depends on the weights: if the first component has a low coefficient, then the result may actually be high. On contrary, the product will return $0.1 \times 0.9 = 0.09$, i.e., a very low reward. Any low component will penalize the final result.
+: $\texttt{R}_{mop}(agent) = \texttt{R}_{oc}(agent) \times \texttt{R}_{comfort}(agent)$
+
+Adaptability1
+: A reward function that simulates a change in its definition after 2000 time steps, as if society's ethical mores had changed. During the first 2000 steps, it behaves similarly as the Over-Consumption reward function, whereas for later steps it returns the mean of Over-Consumption and Equity rewards.
+: $$\texttt{R}_{ada1}(agent) = \begin{cases}
+  \texttt{R}_{oc}(agent) & \text{if } t < 2000 \\
+  \frac{\texttt{R}_{oc}(agent) + \texttt{R}_{eq}(agent)}{2} & \text{else}
+\end{cases}$$
+
+Adaptability2
+: Similar to Adaptability1, this function simulates a change in its definition. We increase the difficulty by making 2 changes, one after 2000 time steps, and another after 6000 time steps, and by considering a combination of 3 rewards after the second change.
+: $$\texttt{R}_{ada2}(agent) = \begin{cases}
+  \texttt{R}_{oc}(agent) & \text{if } t < 2000 \\
+  \frac{\texttt{R}_{oc}(agent) + \texttt{R}_{eq}(agent)}{2} & \text{else if } t < 6000 \\
+  \frac{\texttt{R}_{oc}(agent) + \texttt{R}_{eq}(agent) + \texttt{R}_{comfort}(agent)}{3} & \text{else}
+\end{cases}$$
+
+As we can see, the various reward functions have different aims.
+Some simple functions, such as *equity*, *overconsumption*, or *comfort*, serve as a baseline and building blocks for other functions.
+Nevertheless, they may be easy to optimize: for example, by consuming absolutely nothing, the *overconsumption* function can be satisifed.
+On the contrary, the *comfort* function can be satisfied by consuming the maximum amount of energy, such that the comfort is guaranteed to be close to $1$.
+The 2 *multi-objective* functions thus try to force agents to learn several stakes at the same time, especially if they are contradictory, such as *overconsumption* and *comfort*.
+The agent thus cannot learn a "trivial" behaviour and must find the optimal behaviour that manages to satisfy as much as possible both.
+Finally, the *adaptability* functions go a step further and evaluate agents' ability to adapt when the considerations change.
+
+### Scenarii {#learning-experiments-scenarii}
+
+In order to improve the richness of our experiments, we designed several scenarii.
+These scenarii are defined by 2 variables: the agents' consumption profile, and the environment's size, i.e., number of agents.
+
+We recall from Section \@ref(positioning-smartgrid-profiles) that learning agents are instantiated with a profile, determining their battery capacity, their action range, and their needs, i.e., the quantity of energy they want to consume at each hour.
+These needs are extracted from real consumption profiles ; we propose 2 different versions, the *daily* and the *annually* profiles.
+In the *daily* version, needs are averaged over every day of the year, thus yielding a need for each hour of a day.
+This is a simplified version, averaging the seasonal differences ; its advantages are a reduced size, thus decreasing the required computational resources, a simpler learning, and an easier visualization for humans.
+On the other hand, the *annually* version is more complete, contains seasonal differences, which improve the environment's richness and force agents to adapt to important changes.
+
+```{python learning-scenarii-plot-needs}
+#| fig.cap: >
+#|   The agents' needs for every hour of the day in the *daily* profile.
+from scripts import load_agent_profile
+household_daily = load_agent_profile('profile_residential_daily')
+office_daily = load_agent_profile('profile_office_daily')
+school_daily = load_agent_profile('profile_school_daily')
+
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+sns.set()
+# Prepare data
+dates = list(range(24))
+df_household_daily = pd.Series(household_daily.needs, index=dates).reset_index()
+df_household_daily['Profile'] = 'Household'
+df_office_daily = pd.Series(office_daily.needs, index=dates).reset_index()
+df_office_daily['Profile'] = 'Office'
+df_school_daily = pd.Series(school_daily.needs, index=dates).reset_index()
+df_school_daily['Profile'] = 'School'
+df_needs_daily = pd.concat((df_household_daily, df_office_daily, df_school_daily))
+
+# Create plot
+fig, ax1 = plt.subplots()
+sns.scatterplot(data=df_needs_daily, x='index', y=0, hue='Profile', style='Profile', ax=ax1)
+ax1.set_yscale('log')
+ax1.legend(loc='upper right')
+ax1.set_xlabel('Date/Hour')
+ax1.set_ylabel('Need (W)')
+```
+
+The second property is the environment size.
+We wanted to test our algorithms with different sets of agents, to ensure the scalability of the approach, in the sense that agents are able to learn a correct behaviour and adapt to many other agents in the same environment.
+This may be difficult as the number of agents increase, since there will most certainly be more conflicts.
+We propose a first, *small* environment, containing $20$ Households agents, $5$ Office agents, and $1$ School agent.
+The second environment, *medium*, contains roughly $4\times$ agents, compared to *small*: $80$ Household agents, $19$ Office agents, and $1$ School.
+
+### DDPG and MADDPG baselines {#learning-experiments-baselines}
+
+In order to prove our algorithms' advantages, we chose to compare them to the well-known DDPG [@lillicrap2015continuous] and its multi-agent extension, MADDPG [@lowe2017multi].
+
+DDPG, or *Deep Deterministic Policy Gradient* is one of the algorithms that extended the success of Deep Reinforcement Learning to continuous domains [@lillicrap2015continuous].
+It follows the quite popular Actor-Critic architecture, which uses 2 different Neural Networks: one for the Actor, i.e., to decide which action to perform at each time step, and another for the Critic, i.e., to evaluate whether an action is interesting.
+We chose it as a baseline since it focuses on problems with similar characteristics, e.g., continuous domains, and is a popular baseline in the community.
+
+MADDPG, or *Multi-Agent Deep Deterministic Policy Gradient*, extends the idea of DDPG to the multi-agent setting [@lowe2017multi].
+As we mentioned in Section \@ref(sota-marl-stationarity), one of the most used methods to do so is to share data among agents during the learning process (Centralized Training).
+This helps agents make a model of other agents and adapt to their respective behaviours.
+However, this would impair privacy during the execution ; thus, data is not shared any more at this point (Decentralized Execution).
+We recall that, as we mentioned previously, the Centralized Training - Decentralized Execution fails with the notion of continuous learning, and constant adaptation to changes.
+On the other hand, if we were to make agents continuously learn with the Centralized Training, we would impair privacy of users that are represented or impacted by the agents.
+These reasons are why we chose not to use this setting for our own algorithms.
+Yet, we want to compare them to MADDPG, in order to determine whether there would be a performance gain, and what would be the trade-off between performance and privacy.
+In MADDPG, the Centralized Training is simply done by using a centralized Critic network, which receives observations, actions, and rewards from all agents, and evaluates all agents' actions.
+The Actor networks, however, are still individualized: each agent has its own network, which the other agents cannot access.
+During the training phase, the Critic network is updated thanks to the globally shared data, whereas Actor networks are updated through local data and the global Critic.
+Once the learning is done, the networks are frozen: the Critic does not require receiving global data any more, and the Actors do not rely on the Critic any more.
+Only the decision part, i.e., which action should we do, is kept, by using the trained Actor network as-is.
+
+## Results {#learning-results}
+
+Several sets of experiments were performed:
+
+* First, numerous experiments were launched to search for the best hyperparameters of each algorithm, to ensure a fair comparison later.
+  Each set of hyperparameters was run multiple times to obtain average results, and a better statistical significance.
+  In order to limit the number of runs and thus the computational resources required, we decided to focus on the *adaptability2* reward for these experiments.
+  This function is difficult enough so that the algorithms will not reach almost 100% immediately, which would make the hyperparameter search quite useless, and is one of the 2 that interest us the most, along with *adaptability1*, so it makes sense that our algorithms be optimized for this one.
+  The *annually* consumption profile was used to increase the richness, but the environment size, i.e., number of agents, was set to *small* in order to once again reduce the computational power and time.
+
+* Then, the 4 algorithms, configured with their best hyperparameters, were compared on multiple settings:
+  both *annually* and *daily* consumption profiles, both *small* and *medium* sizes of environment, and all the reward functions.
+  This resulted in $2 \times 2 \times 7$ scenarios, which we ran $10$ times for each of the 4 algorithms.
+
+<!--
+* Finally, the Q-SOM and Q-DSOM algorithms are tested with a heterogeneous population of agents, mixing learning agents that are tasked with exhibiting a behaviour that considers the ethical stakes, and random agents that behave unethically.
+  The goal of this experiment is to leverage our multi-agent system to observe what happens in a mixed society: are agents able to compensate and adapt?
+-->
+
+In the following results, we define a run's *score* as the average of the global rewards per step.
+The global reward corresponds to the reward, without focusing on a specific agent.
+For example, the *equity* reward compares the Hoover index of the whole environment to a hypothetical environment without the agent.
+The global reward, in this case, is simply the Hoover index of the entire environment.
+This represents, intuitively, how the society of agents performed, globally.
+Taking the average is one of the simplest methods to get a single score for a given run, which allows comparing them easily.
+
+### Searching for hyperparameters
+
+The following tables summarize the best hyperparameters that have been found for each algorithm, based on the average runs' score obtained when using these parameters.
+
+```{r learning1-best-hyperparameters-qsom}
+#| tab.cap: >
+#|   Best hyperparameters on 10 runs for the Q-SOM algorithm, using the
+#|   *annually small* scenario and *adaptability2* reward function.
+best <- read.csv("./data/contribution1/hyperparameters_qsom1.csv") %>%
+  group_by(input_som_lr, action_som_lr, q_lr, q_gamma, perturbation, action_noise, q_tau) %>%
+  summarize(mean_score = mean(score), nb_runs = n(), .groups = "drop") %>%
+  filter(nb_runs == 10) %>%
+  slice_max(mean_score, n = 1L)
+tribble(
+  ~Parameter, ~Value, ~Description,
+  "State-SOM shape", "12x12", "Shape of the neurons' grid",
+  "Action-SOM shape", "3x3", "Shape of the neurons' grid",
+  "State-SOM learning rate", as.character(best$input_som_lr), "",
+  "Action-SOM learning rate", as.character(best$action_som_lr), "",
+  "Q Learning rate", as.character(best$q_lr), "",
+  "Discount rate", as.character(best$q_gamma), "",
+  "Action perturbation", as.character(best$perturbation), "Method to randomly explore actions.",
+  "Action noise", as.character(best$action_noise), "Parameter for the random noise distribution.",
+  "Boltzmann temperature", as.character(best$q_tau), "Controls the exploration-exploitation."
+) %>%
+  flextable() %>%
+  autofit()
+```
+
+
+```{r learning1-best-hyperparameters-qdsom}
+#| tab.cap: >
+#|   Best hyperparameters on 10 runs for the Q-DSOM algorithm, using the
+#|   *annually small* scenario and *adaptability2* reward function.
+best <- read.csv("./data/contribution1/hyperparameters_qdsom1.csv") %>%
+  group_by(input_som_lr, input_som_elasticity, action_som_lr, action_som_elasticity, q_lr, q_gamma, perturbation, action_noise, q_tau) %>%
+  summarize(mean_score = mean(score), nb_runs = n(), .groups = "drop") %>%
+  filter(nb_runs == 10) %>%
+  slice_max(mean_score, n = 1L)
+tribble(
+  ~Parameter, ~Value, ~Description,
+  "State-SOM shape", "12x12", "Shape of the neurons' grid",
+  "State-SOM learning rate", as.character(best$input_som_lr), "",
+  "State-SOM elasticity", as.character(best$input_som_elasticity), "",
+  "Action-SOM shape", "3x3", "Shape of the neurons' grid",
+  "Action-SOM learning rate", as.character(best$action_som_lr), "",
+  "Action-SOM elasticity", as.character(best$action_som_elasticity), "",
+  "Q Learning rate", as.character(best$q_lr), "",
+  "Discount rate", as.character(best$q_gamma), "",
+  "Action perturbation", as.character(best$perturbation), "Method to randomly explore actions.",
+  "Action noise", as.character(best$action_noise), "Parameter for the random noise distribution.",
+  "Boltzmann temperature", as.character(best$q_tau), "Controls the exploration-exploitation."
+) %>%
+  flextable() %>%
+  autofit()
+```
+
+
+```{r learning1-best-hyperparameters-ddpg}
+#| tab.cap: >
+#|   Best hyperparameters on 10 runs for the DDPG algorithm, using the
+#|   *annually small* scenario and *adaptability2* reward function.
+best <- read.csv("./data/contribution1/hyperparameters_ddpg.csv") %>%
+  group_by(ddpg_batch_size, ddpg_lr, ddpg_gamma, ddpg_tau, perturbation, action_noise) %>%
+  summarize(mean_score = mean(score), nb_runs = n(), .groups = "drop") %>%
+  filter(nb_runs == 10) %>%
+  slice_max(mean_score, n = 1L)
+tribble(
+  ~Parameter, ~Value, ~Description,
+  "Batch size", as.character(best$ddpg_batch_size), "Number of samples to use for training at each step.",
+  "Learning rate", as.character(best$ddpg_lr), "",
+  "Discount rate", as.character(best$ddpg_gamma), "",
+  "Tau", as.character(best$ddpg_tau), "Target network update rate",
+  "Action perturbation", as.character(best$perturbation), "Method to randomly explore actions.",
+  "Action noise", as.character(best$action_noise), "Parameter for the random noise distribution."
+) %>%
+  flextable() %>%
+  autofit()
+```
+
+
+```{r learning1-best-hyperparameters-maddpg}
+best <- read.csv("./data/contribution1/hyperparameters_maddpg.csv") %>%
+  group_by(maddpg_lr_actor, maddpg_lr_critic, maddpg_tau, maddpg_gamma, maddpg_batch_size, maddpg_buffer_size, maddpg_noise, maddpg_epsilon) %>%
+  summarize(mean_score = mean(score), nb_runs = n(), .groups = "drop") %>%
+  filter(nb_runs == 10) %>%
+  slice_max(mean_score, n = 1L)
+tribble(
+  ~Parameter, ~Value, ~Description,
+  "Batch size", as.character(best$maddpg_batch_size), "Number of samples to use for training at each step.",
+  "Buffer size", as.character(best$maddpg_buffer_size), "Size of the replay memory.",
+  "Actor learning rate", as.character(best$maddpg_lr_actor), "",
+  "Critic learning rate", as.character(best$maddpg_lr_critic), "",
+  "Discount rate", as.character(best$maddpg_gamma), "",
+  "Tau", as.character(best$maddpg_tau), "Target network update rate",
+  "Noise", as.character(best$maddpg_noise), "",
+  "Epsilon", as.character(best$maddpg_epsilon), ""
+) %>%
+  flextable() %>%
+  autofit()
+```
+
+<!-- TODO: finish tables and descriptions -->
+
+### Comparing algorithms
+
+```{python learning1-results-compare, out.width = "100%"}
+#| fig.cap: >
+#|   Results
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+sns.set()
+df = pd.read_csv('data/contribution1/scores.csv')
+sns.catplot(data=df, kind = 'violin',
+            x = 'RewardFunction',
+            y = 'Score',
+            hue='Model',
+            row='EnvironmentSize',
+            col='ConsumptionProfile',
+            legend_out=True)
+plt.show()
+```
+
+```{r learning1-results-compare-table}
+#| tab.cap: >
+#|   Average score for 10 runs of each algorithm, on each reward function and each scenario.
+#|   The standard deviation is shown inside parentheses.
+# TODO: put in bold the max model for each row
+# TODO: put the Scenario as a whole line (not a column => gain more place)
+grey_txt <- fp_text_default(color = "gray")
+myformat <- function (x) { sprintf("%.2f", x) }
+ft <- read.csv('data/contribution1/scores.csv') %>%
+  as_tibble() %>%
+  group_by(across(c(Model, ConsumptionProfile, EnvironmentSize, RewardFunction))) %>%
+  summarize(MeanScore = mean(Score), StdScore = sd(Score),
+            .groups = "drop") %>%
+  # There is probably a way to do this `mutate` directly in `tabulator`, but I do not know it.
+  mutate(Scenario = paste(ConsumptionProfile, EnvironmentSize, sep = " / ")) %>%
+  arrange(desc(Scenario), factor(RewardFunction, levels = c("equity", "overconsumption", "multiobj-sum", "multiobj-prod", "adaptability1", "adaptability2"))) %>%
+  tabulator(rows = c("Scenario", "RewardFunction"), columns = "Model",
+            Result = as_paragraph(
+              as_chunk(MeanScore, formatter = myformat),
+              as_chunk(" (\u00B1 ", props = grey_txt),
+              as_chunk(StdScore, formatter = myformat, props = grey_txt),
+              as_chunk(")", props = grey_txt)
+            )) %>%
+  as_flextable(separate_with = "Scenario")
+if (knitr::is_latex_output()) {
+  ft <- ft %>% fontsize(size = 8, part = "body") %>%
+          fontsize(size = 10, part = "header")
+}
+ft %>%
+  autofit()
+```
+
+The results show that the Q-SOM algorithm performs better.
+We use the Wilcoxon statistical test, which is the non-parametric equivalent of the well-known T-test, to determine whether there is a statistically significant difference in the means of runs' scores between different algorithms.
+Wilcoxon's test, when used with the *greater* alternative, assumes as a null hypothesis that the 2 algorithms have similar means, or that the observed difference is negligible and due to chance alone.
+The Wilcoxon method returns the *p-value*, i.e, the likelihood of the null hypothesis being true.
+When $p < \alpha = 0.05$, we say that it is more likely that the null hypothesis can be refuted, and we assume that the alternative hypothesis is the correct one.
+The alternative hypothesis, in this case, is that the Q-SOM algorithm obtains better results than its opposing algorithm.
+We thus compare algorithms 2-by-2, on each reward function and scenario.
+
+The statistics, presented in Table \@ref(tab:learning1-compare-stats-qsom), prove that the Q-SOM algorithm statistically outperforms other algorithms, in particular DDPG and MADDPG, on most scenarii and reward functions, except a few cases, indicated by the absence of '*' next to the *p-value*.
+For example, DDPG obtains similar scores on the *daily / small overconsumption* and *multiobj-prod* cases, as well as *daily / medium overconsumption*, and *annually / medium overconsumption*.
+Q-DSOM is also quite on par with Q-SOM on the *daily / small adaptability1* case.
+Yet, MADDPG is consistently outperformed by Q-SOM.
+
+```{r learning1-compare-stats-qsom}
+#| tab.cap: >
+#|   Comparison of the *Q-SOM* algorithm with the others, using a Wilcoxon
+#|   statistical test, with the 'greater' alternative.
+data <- read.csv("./data/contribution1/scores.csv") %>% as_tibble()
+grid <- expand.grid(c("Q-DSOM-1", "DDPG", "MADDPG"), unique(data$ConsumptionProfile), unique(data$EnvironmentSize), unique(data$RewardFunction))
+compare <- function (data, model1, model2, profile, size, reward) {
+    data1 <- data %>% filter(Model == model1 & ConsumptionProfile == profile & EnvironmentSize == size & RewardFunction == reward)
+    data2 <- data %>% filter(Model == model2 & ConsumptionProfile == profile & EnvironmentSize == size & RewardFunction == reward)
+    p <- wilcox.test(data1$Score, data2$Score, alternative = "greater")$p.value
+    data.frame(
+      "Model1" = model1,
+      "Model2" = model2,
+      "ConsumptionProfile" = profile,
+      "EnvironmentSize" = size,
+      "RewardFunction" = reward,
+      "p" = p
+    )
+}
+pvalue_format <- function(x){
+  z <- cut(x, breaks = c(-Inf, 0.001, 0.01, 0.05, Inf), labels = c("***", " **", "  *", "   "))
+  x <- format.pval(x, digits = 3)
+  z <- paste0(x, as.character(z))
+  z[is.na(x)] <- ""
+  z
+}
+# Compute the p-value when comparing Q-SOM-1 to each other algorithm.
+do.call(rbind, apply(grid, 1, function (x) compare(data, "Q-SOM-1", x[1], x[2], x[3], x[4]))) %>%
+  # We want 3 columns (QDSOM, DDPG, MADDPG) => wider format instead of many rows
+  tidyr::pivot_wider(names_from = Model2, values_from = p) %>%
+  # Format the p-values
+  mutate("QDSOM" = pvalue_format(`Q-DSOM-1`), "MADDPG" = pvalue_format(MADDPG), "DDPG" = pvalue_format(DDPG)) %>%
+  # Simplify table: group rows by the "Scenario", i.e., ConsumptionProfile+EnvironmentSize to gain place
+  mutate("Scenario" = paste(ConsumptionProfile, EnvironmentSize, sep = " / ")) %>%
+  select(Scenario, RewardFunction, QDSOM, DDPG, MADDPG) %>%
+  # Sort by descending scenario (daily / small, daily / medium, annually / small, annually / medium)
+  # and by custom order of Rewards
+  arrange(desc(Scenario), factor(RewardFunction, levels = c("equity", "overconsumption", "multiobj-sum", "multiobj-prod", "adaptability1", "adaptability2"))) %>%
+  as_grouped_data(groups = "Scenario") %>%
+  as_flextable() %>%
+  # Bold "group title" (Scenario) and headers
+  bold(j = 1, i = ~ !is.na(Scenario), bold = TRUE, part = "body") %>%
+  bold(part = "header", bold = TRUE) %>%
+  add_header_row(values = c("", "Wilcoxon's p-value (Q-SOM vs ...)"), colwidths = c(1, 3)) %>%
+  # fontsize(size = 8) %>%
+  add_footer_lines(values = "Signif. codes: 0 <= '***' < 0.001 < '**' < 0.01 < '*' < 0.05") %>%
+  autofit()
+```
+
+```{r learning1-compare-stats-qdsom, eval = FALSE, include = FALSE}
+#| tab.cap: >
+#|   Comparison of the *Q-DSOM* algorithm with the others, using a Wilcoxon
+#|   statistical test, with the 'greater' alternative.
+data <- read.csv("./data/contribution1/scores.csv") %>% as_tibble()
+grid <- expand.grid(c("Q-SOM-1", "DDPG", "MADDPG"), unique(data$ConsumptionProfile), unique(data$EnvironmentSize), unique(data$RewardFunction))
+compare <- function (data, model1, model2, profile, size, reward) {
+    data1 <- data %>% filter(Model == model1 & ConsumptionProfile == profile & EnvironmentSize == size & RewardFunction == reward)
+    data2 <- data %>% filter(Model == model2 & ConsumptionProfile == profile & EnvironmentSize == size & RewardFunction == reward)
+    p <- wilcox.test(data1$Score, data2$Score, alternative = "greater")$p.value
+    data.frame(
+      "Model1" = model1,
+      "Model2" = model2,
+      "ConsumptionProfile" = profile,
+      "EnvironmentSize" = size,
+      "RewardFunction" = reward,
+      "p" = p
+    )
+}
+pvalue_format <- function(x){
+  z <- cut(x, breaks = c(-Inf, 0.001, 0.01, 0.05, Inf), labels = c("***", " **", "  *", "   "))
+  x <- format.pval(x, digits = 3)
+  z <- paste0(x, as.character(z))
+  z[is.na(x)] <- ""
+  z
+}
+
+# Compute the p-value when comparing Q-SOM-1 to each other algorithm.
+do.call(rbind, apply(grid, 1, function (x) compare(data, "Q-DSOM-1", x[1], x[2], x[3], x[4]))) %>%
+  # We want 3 columns (QSOM, DDPG, MADDPG) => wider format instead of many rows
+  tidyr::pivot_wider(names_from = Model2, values_from = p) %>%
+  # Format the p-values
+  mutate("QSOM" = pvalue_format(`Q-SOM-1`), "MADDPG" = pvalue_format(MADDPG), "DDPG" = pvalue_format(DDPG)) %>%
+  # Simplify table: group rows by the "Scenario", i.e., ConsumptionProfile+EnvironmentSize to gain place
+  mutate("Scenario" = paste(ConsumptionProfile, EnvironmentSize, sep = " / ")) %>%
+  select(Scenario, RewardFunction, QSOM, DDPG, MADDPG) %>%
+  # Sort by descending scenario (daily / small, daily / medium, annually / small, annually / medium)
+  # and by custom order of Rewards
+  arrange(desc(Scenario), factor(RewardFunction, levels = c("equity", "overconsumption", "multiobj-sum", "multiobj-prod", "adaptability1", "adaptability2"))) %>%
+  as_grouped_data(groups = "Scenario") %>%
+  as_flextable() %>%
+  # Bold "group title" (Scenario) and headers
+  bold(j = 1, i = ~ !is.na(Scenario), bold = TRUE, part = "body") %>%
+  bold(part = "header", bold = TRUE) %>%
+  add_header_row(values = c("", "Wilcoxon's p-value (Q-DSOM vs ...)"), colwidths = c(1, 3)) %>%
+  # fontsize(size = 8) %>%
+  add_footer_lines(values = "Signif. codes: 0 <= '***' < 0.001 < '**' < 0.01 < '*' < 0.05") %>%
+  autofit()
+```
+
+Figure \@ref(fig:learning1-agents-rewards) shows the evolution of individual rewards received by agents over the time steps, in the *annually / small* scenario, using the *adaptability2* reward function.
+We chose to focus on this combination of scenario and reward function as they are, arguably the most interesting.
+*daily* scenarios are perhaps too easy for the agents as they do not include as much variations as the *annually* ; additionally, *small* scenarios are easier to visualize and explore, as they contain fewer agents than *medium* scenarios.
+Finally, the *adaptability2* is retained for the same arguments that made us choose it for the hyperparameters search.
+We show a moving average of the rewards in order to erase the small and local variations to highlight the larger trend of the rewards' evolution.
+
+```{python learning1-agents-rewards, out.width = "100%", cache = TRUE}
+#| fig.cap: >
+#|   Agents' individual rewards received per time step, over 10 runs in the
+#|   *annually / small* scenario and using the *adaptability2* reward function.
+#|   Rewards are averaged in order to highlight the trend.
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+sns.set()
+ma = 50  # Size of the moving average
+df = pd.read_pickle('data/contribution1/agents_details.pkl.xz', compression='xz')
+df = df[(df['Model'] == 'Q-SOM-1') | (df['Model'] == 'Q-DSOM-1')]
+df[f'Reward (MA{ma})'] = df['Reward'].rolling(ma).mean()
+sns.lineplot(data=df,
+             x = 'Step',
+             y = f'Reward (MA{ma})',
+             hue='Model')
+plt.show()
+```
+
+<!-- TODO: compare comforts ? -->
+
+ We can see from the results that the *small* scenarii seem to yield a slightly better score than the *medium* scenarii.
+Thus, agents are impacted by the increased number of other agents, and have difficulties learning the whole environment dynamics.
+Still, the results reported for the *medium* scenarii are near the *small* results, and very close to $1$.
+Even though there is indeed an effect of the environment size on the score, this hints towards the scalability of our approach, as the agents managed to learn a "good" behaviour that yields high rewards.
+
+## Discussion {#learning-discussion}
+
+In this chapter, we presented our 1st contribution, 2 reinforcement learning algorithms, Q-SOM and Q-DSOM.
+
+We recall that the principal important aspects and limitations identified in the State of the Art, and which pertains to our 1st research question, were the following:
+
+* Using continuous and multi-dimensional domains to improve the environment's richness.
+* Continuously learning and adapting to changes in the environment, including in the reward function, i.e., the structure that encodes and captures the ethical considerations that agents should learn to exhibit.
+* Learning in a multi-agent setting, by taking into account the difficulties posed by the presence of other agents.
+
+The continuous and multi-dimensional aspect was solved by design, thanks to the SOMs and DSOMs that we use in our algorithms.
+They learn to handle the complex observations and actions domains, while advantageously offering a discrete representation that can be leveraged with the Q-Table, making a modular approach.
+This modular approach, and the use of Q-Tables, allow for example to compare different actions, which is not always possible in end-to-end Deep Neural Networks.
+This point in particular will be leveraged in our 3rd contribution, through multi-objective learning, in Chapter \@ref(dilemmas).
+
+The continuous adaptation was also handled by our design choices, notably by disabling traditional convergence mechanisms.
+The use of (D)SOMs also help, as the representation may shift over time by moving the neurons.
+Additionally, our experiments proved the ability of our algorithms to adapt, especially when compared to other algorithms, through the specific *adaptability1* and *adaptability2* functions.
+
+Finally, the multi-agent difficulties were partially answered by the use of Difference Rewards to create the reward functions.
+On the other hand, the agents themselves have no specific mechanism that help them learn a behaviour while taking account of the other agents in the shared environment, e.g., contrary to Centralized Training algorithms such as MADDPG.
+Nevertheless, our algorithms managed to perform better than MADDPG on the proposed scenarii and reward functions, which means that this limitation is not blocking.
+
+In addition to the multi-agent setting, our algorithms still suffer from a few limitations, of which we distinguish 2 categories:
+limitations that were set aside in order to propose a working 1st step, and which will be answered incrementally in the next contributions ; and longer-terms limitations that are still not taken care of at the end of this thesis.
+We will first briefly present the former, before detailing the latter.
+
+From the objectives we set in this manuscript's introduction, and the important points identified in the State of the Art, we note the following were set aside temporarily:
+
+* Interpretable rewards and reward functions constructed from domain expert knowledge:
+  The reward functions we proposed have the traditional form of mathematical formulas ; the resulting rewards are difficult to interpret, as the reasoning and rationale are not present in the formula.
+  <!-- It may also be difficult to construct such functions from expert knowledge, especially when the function needs to be fine-tuned to improve the agents' performance. -->
+  In this contribution, proposed reward functions were kept simple as a validation tool to evaluate the algorithms' ability to learn.
+  We tackle this point in the next contribution, in Chapter \@ref(judgments), in which we propose to construct reward functions through symbolic-based judgments.
+
+* Multiple moral values:
+  Some of our reward functions hinted towards the combination of multiple moral values, such as the *multi-objective-sum*, *multi-objective-prod*, *adaptability1*, and *adaptability2*.
+  However, the "moral values" were rather simple and did not include many subtleties, e.g., for the equity, we might accept an agent to consume more than the average, if the agent previously consumed less, and is thus "entitled" to a compensation.
+  We improve this aspect in the next contribution again, by providing multiple judging agents that each focus on a different moral value.
+
+* Multiple moral values / objectives:
+  Moreover, these moral values, which can be seen as different objectives, are simply aggregated in the reward function.
+  On the agents' side, the reward is a simple scalar, and nothing allows to distinguish the different moral values, nor to recognize dilemmas situations, where multiple values are in conflict and cannot be satisfied at the same time.
+  This is focused by our 3rd contribution, in Chapter \@ref(dilemmas), in which we extend the Q-(D)SOM algorithms to a multi-objective setting.
+
+As for the longer-terms limitations and perspectives:
+
+* As we already mentioned, the multi-agent aspect could be improved, for example by adding communication mechanisms between agents.
+  Indeed, by being able to communicate, agents could coordinate their actions so that the joint-action could be even better.
+  Let us assume that an agent learned approximately the environment dynamics, believes that there is not much consumption at 3AM, and its strategy is to replenish its battery at this moment, so as to have a minimal impact on the grid.
+  Another agent may, at some point, face an urgent situation that requires it to consume exceptionally at 3AM this day.
+  Without coordination, the 2 agents will both consume an import amount of energy at the same time, thus impacting the grid and potentially over-consuming.
+  On the other hand, if the agents could communicate, the second one may inform other agents of its urgency.
+  The first one would perhaps choose to consume only at 4AM, or they would both negotiate an amount of energy to share, in the end proposing a better joint-action than the uncoordinated sum of their individual actions.
+  However, such communication should be carefully designed in a privacy-respectful manner.
+
+<!-- Should we add a point about constructivism? It would be difficult to explain concisely. -->
+
+In order to make the reward functions more understandable, in particular by non-AI expert, such as lay users, domain experts, or regulators, to be able to capture expert knowledge, and to allow easier modification, e.g., when the behaviour is not what we expected, we propose to replace the numerical reward functions by separate, symbolic, judging agents.
+We detail this in the next chapter.

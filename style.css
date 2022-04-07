@@ -1,3 +1,8 @@
 p {
     text-align: justify;
 }
+
+/* A little bit of additional spaces between references, to facilitate reading. */
+div.csl-entry {
+    margin-bottom: 1em;
+}

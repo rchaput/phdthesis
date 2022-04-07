@@ -1,3 +1,56 @@
 https://stackoverflow.com/questions/50702942/does-rmarkdown-allow-captions-and-references-for-code-chunks
 
 https://github.com/rstudio/bookdown/issues/1292
+
+We can use `rsvg-convert -f pdf -o <name>.pdf <name>.svg` to convert SVG images
+to PDF.
+Then, to include the image, use
+`knitr::include_graphics("<name>.svg", auto_pdf = TRUE)`
+
+We can use `usethis::use_tidy_description()` to tidy the 'DESCRIPTION' file,
+and especially re-order imports in alphabetical order (easier to read).
+However, the output must be checked, because sometimes the tool will break
+some information! The SystemRequirements in particular is less readable (IMHO),
+and it replaced the Author content by a dot "."!
+Best to commit before, then tidy, and finally amend to avoid losing work.
+
+CI:
+Best practices by rOpenSci:
+  https://devguide.ropensci.org/ci.html
+Example of CI:
+  https://github.com/r-lib/actions/blob/v1/examples/bookdown.yaml
+
+TODO: set the extra preamble in the engine.opts options rather than hardcoded
+  in the template. (packages "amsmath" and "amsfonts")
+
+TODO: increase size of algorithms. Using `\documentclass[14pt]{standalone}`
+  does not seem to work?
+
+https://ardata-fr.github.io/flextable-book
+
+We need to be in math mode to use \texttt? (Otherwise, pandoc will not produce
+the correct text in HTML). However, LaTeX does not support using `_` in texttt
+and math mode (because it means subscript). We can use `\_` to tell LaTeX
+to print an (escaped) underscore, but HTML does not understand it and prints
+literally `\_`.
+Other alternative: using the `\mathtt` command.
+
+For tables:
+https://stackoverflow.com/questions/41900335/adjusting-width-of-tables-made-with-kable-in-rmarkdown-documents
+https://community.rstudio.com/t/sizing-tables-in-pdf-documents-using-knitr-and-kableextra/19285/2
+- `kable_styling(latex_options = "scale_down")`
+- `kable_styling(full_width = TRUE)`
+- `add_footnote(threeparttable = TRUE)`
+
+Citations:
+"@adams1975 says that" => "Adams (1975) says that"
+"@adams1975[p.33] says that" => "Adams (1975, p.33) says that"
+"It is said that ... [@adams1975]." => "It is said that ... (Adams, 1975)."
+"It is said that ... [see @adams1975, p.33]." => "It is said that ... (see Adams, 1975, p.33)."
+"[@key1; @key2; @key3]" => "(Citation1; Citation2; Citation3)"
+
+TODO: Clean included packages in the LaTeX template.
+  Some of them are included multiple times => need to find where and which
+  options should we keep.
+
+TODO: Make a glossary of notations and definitions in an appendix.

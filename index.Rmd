@@ -1,20 +1,19 @@
 ---
-title: 'Multi-agent learning of ethical behaviours, using multiple moral values, combining symbolic reasoning and numeric learning'
+title: 'Learning behaviours aligned with moral values in a multi-agent system: guiding reinforcement learning with symbolic judgments'
 author: 'Rémy Chaput'
 date: 'Month 2022'
+
+# Thesis information
+title_fr: "Apprendre des comportements alignés sur des valeurs morales dans un système multi-agent: guider l'apprentissage par renforcement avec des jugements symboliques"
 nnt: 'xx.xx.xxx'
 institution: "l'Université Claude Bernard Lyon 1"
 department: 'Informatique'
 ednumber: '512'
 edname: 'InfoMaths'
+privacy: 'publiquement'
 
 knit: bookdown::render_book
 site: bookdown::bookdown_site
-
-# The next two lines allow you to change the spacing in your thesis. You can 
-# switch out \onehalfspacing with \singlespacing or \doublespacing, if desired.
-header-includes:
-    - \usepackage{setspace}\onehalfspacing
 
 # This will automatically install the {remotes} package and {thesisdown}
 # Change this to FALSE if you'd like to install them manually on your own.
@@ -25,21 +24,26 @@ params:
 # (e.g., abstract, acknowledgements) below or use code similar to line 25-26 
 # for the .RMD files. If you are NOT producing a PDF, delete or silence
 # lines 25-39 in this YAML header.
-abstract: '`r if(knitr:::is_latex_output()) paste(readLines(here::here("prelims", "00-abstract.Rmd")), collapse = "\n  ")`'
-# If you'd rather include the preliminary content in files instead of inline
-# like below, use a command like that for the abstract above.  Note that a tab 
-# is needed on the line after the `|`.
-acknowledgements: |
-  I want to thank a few people.
-dedication: |
-  You can have a dedication here if you wish. 
-preface: |
-  This is an example of a thesis setup to use the reed thesis document class.
+abstract: |
+  `r if(knitr:::is_latex_output()) paste(readLines(here::here("prelims", "00-abstract.Rmd")), collapse = "\n  ")`
+abstract_fr: |
+  `r if(knitr:::is_latex_output()) paste(readLines(here::here("prelims", "00-abstract-fr.Rmd")),
+  collapse = "\n  ")`
+summary_fr: |
+  `r if(knitr:::is_latex_output()) paste(readLines(here::here("prelims", "00-summary-fr.Rmd")), collapse = "\n  ")`
+# acknowledgements: |
+#   I want to thank a few people.
+# dedication: |
+#   You can have a dedication here if you wish.
+# preface: |
+#   This is an example of a thesis setup to use the reed thesis document class.
 
 # Specify the location of the bibliography below
-bibliography: bib/thesis.bib
+bibliography: references.bib
 # Download your specific csl file and refer to it in the line below.
 csl: csl/apa.csl
+# Add links to citations in the HTML output
+link-citations: true
 
 # Table of Contents
 # toc: true
@@ -51,88 +55,63 @@ csl: csl/apa.csl
 # lol: true
 ---
 
-<!--
-Above is the YAML (YAML Ain't Markup Language) header that includes a lot of 
-metadata used to produce the document.  Be careful with spacing in this header!
-
-If you'd prefer to not include a Dedication, for example, simply delete the section entirely, or silence them (add # before each line). 
-
-If you have other LaTeX packages you would like to include, delete the # before header-includes and list the packages after hyphens on new lines.
-
-If you'd like to include a comment that won't be produced in your resulting file enclose it in a block like this.
-
-If you receive a duplicate label error after knitting, make sure to delete the index.Rmd file and then knit again.
--->
 
 ```{r include_packages, include=FALSE}
 # This chunk ensures that the thesisdown package is
 # installed and loaded. This thesisdown package includes
 # the template files for the thesis.
 
-pkgs <- c("knitr", "bookdown", "pdftools")
-
-
-if (!require(remotes)) {
-  if (params$`Install needed packages`) {
-    install.packages("remotes", repos = "https://cran.rstudio.com")
-  } else {
-    stop(
-      paste('You need to run install.packages("remotes")",
-            "first in the Console.')
-    )
+helper_install_pkg <- function (pkg.name, repos = "https://cran.rstudio.com") {
+  if (!require(pkg.name, character.only = TRUE)) {
+    if (params$`Install needed packages`) {
+      install.packages(pkg.name, repos = repos)
+      library(pkg.name, character.only = TRUE)
+    } else {
+      stop(
+        paste0(
+          "You need to run install.packages('", 
+          pkg.name, 
+          "') first in the R Console."
+          )
+        )
+    }
   }
 }
-if (!require(thesisdown)) {
-  if (params$`Install needed packages`) {
-    remotes::install_github("ismayc/thesisdown")
-  } else {
-    stop(
-      paste(
-        "You need to run",
-        'remotes::install_github("ismayc/thesisdown")',
-        "first in the Console."
+
+helper_install_github <- function (pkg.name, repo.name) {
+  if (!require(pkg.name, character.only = TRUE)) {
+    if (params$`Install needed packages`) {
+      remotes::install_github(repo.name)
+      library(pkg.name, character.only = TRUE)
+    } else {
+      stop(
+        paste0(
+          "You need to run remotes::install_github('",
+          repo.name,
+          "') first in the R Console."
+        )
       )
-    )
+    }
   }
 }
-library(thesisdown)
 
-if (!require(knitrdrawio)) {
-  if (params$`Install needed packages`) {
-    remotes::install_github("rchaput/knitrdrawio")
-  } else {
-    stop('You need to run remotes::install_github("rchaput/knitrdrawio")')
-  }
-}
-library(knitrdrawio)
+helper_install_pkg("remotes")
+helper_install_pkg("knitr")
+helper_install_pkg("bookdown")
+helper_install_pkg("tibble")
+helper_install_pkg("dplyr")
+# For the algorithms engine, converting svg to pdf
+helper_install_pkg("magick")
+helper_install_pkg("pdftools")
+# Improve the styling of tables
+helper_install_pkg("kableExtra")
+helper_install_pkg("flextable")
+# For Python engine
+helper_install_pkg("reticulate")
 
-if (!require(acronymsdown)) {
-  if (params$`Install needed packages`) {
-    remotes::install_github("rchaput/acronymsdown")
-  } else {
-    stop('You need to run remotes::install_github("rchaput/acronymsdown")')
-  }
-}
-library(acronymsdown)
-
-# For the algorithm engine
-if (!require(magick)) {
-  if (params$`Install needed packages`) {
-    install.packages("magick", repos = "https://cran.rstudio.com")
-  } else {
-    stop('You need to run install.packages("magick")')
-  }
-}
-library(magick)
-if (!require(pdftools)) {
-  if (params$`Install needed packages`) {
-    install.packages("pdftools", repos = "https://cran.rstudio.com")
-  } else {
-    stop('You need to run install.packages("pdftools")')
-  }
-}
-library(pdftools)
-
+helper_install_github("thesisdown", "ismayc/thesisdown")
+helper_install_github("knitrdrawio", "rchaput/knitrdrawio")
+helper_install_github("acronymsdown", "rchaput/acronymsdown")
 
 ```
 
@@ -141,11 +120,15 @@ library(pdftools)
 knitr::opts_chunk$set(echo = FALSE)
 # Set how wide the R output will go
 options(width = 70)
+# Setup Python engine
+reticulate::use_virtualenv(file.path(getwd(), ".venv"))
+# Ignore fonts in flextable (needs to use xelatex otherwise)
+flextable::set_flextable_defaults(fonts_ignore = TRUE)
 ```
 
 ```{r setup-algorithm-engine, include=FALSE}
 # From marcishak (https://github.com/rstudio/bookdown/issues/1292#issuecomment-991575445)
-knitr::knit_engines$set(algorithm = function(options) {
+algorithm.engine <- function (options) {
   if (!options$eval) {
     return(engine_output(options, options$code, ""))
   }
@@ -161,6 +144,12 @@ knitr::knit_engines$set(algorithm = function(options) {
   # template
   # H required to work in standalone...
   lines <- r"(\documentclass{standalone}
+  \usepackage{amsmath}
+  \usepackage{amssymb}
+  \usepackage{amsfonts}
+  \usepackage{physics}  % For the `norm` command
+  \usepackage{xcolor}  % For colored comments
+  \DeclareMathOperator*{\argmin}{argmin}
   %% EXTRA_PREAMBLE_CODE %%
   \usepackage[
   %% ALGO_CLASSOPTION %%
@@ -198,7 +187,7 @@ knitr::knit_engines$set(algorithm = function(options) {
   xfun::write_utf8(lines, texf <- knitr:::wd_tempfile("tikz", ".tex"))
   on.exit(unlink(texf), add = TRUE)
 
-  ext <- tolower(options$fig.ext %n% knitr:::dev2ext(options$dev))
+  ext <- tolower(options$fig.ext %n% knitr:::dev2ext(options))
 
   to_svg <- ext == "svg"
   outf <- if (to_svg) tinytex::latexmk(texf, "latex") else tinytex::latexmk(texf)
@@ -233,8 +222,18 @@ knitr::knit_engines$set(algorithm = function(options) {
   extra <- knitr:::run_hook_plot(fig, options)
   options$engine <- "tex" # for output hooks to use the correct language class
   knitr::engine_output(options, options$code, "", extra)
-})
+}
+
+knitr::knit_engines$set(algorithm = algorithm.engine)
 ```
+
+
+<!-- Required to number equations in HTML files -->
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  TeX: { equationNumbers: { autoNumber: "AMS" } }
+});
+</script>
 
 <!--
 The acknowledgments, preface, dedication, and abstract are added into the PDF
@@ -244,12 +243,19 @@ Alternatively, you can put that content in files like 00--prelim.Rmd and
 -->
 
 
-
 ```{r eval=!knitr::is_latex_output(), child=here::here("prelims", "00--prelim.Rmd")}
 
 ```
 
+`r if(!knitr:::is_latex_output()) '## Abstract {-}'`
+
 ```{r eval=!knitr::is_latex_output(), child=here::here("prelims", "00-abstract.Rmd")}
+
+```
+
+`r if(!knitr:::is_latex_output()) '## Résumé (Fr) {-}'`
+
+```{r eval=!knitr::is_latex_output(), child=here::here("prelims", "00-abstract-fr.Rmd")}
 
 ```
 

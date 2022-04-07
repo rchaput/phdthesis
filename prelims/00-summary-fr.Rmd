@@ -1,0 +1,142 @@
+<!--
+French law requires a "substantial summary" of 2-4 pages, as the thesis is
+written in English.
+-->
+
+<!-- Introduction -->
+
+Durant les dernières années, les techniques d'Intelligence Artificielle (IA) se sont considérablement développées, atteignant d'impressionnantes performances dans de nombreux domaines.
+Parallèlement, les applications et systèmes incluant de telles techniques d'IA sont de plus en plus déployées dans notre société, ayant un impact sur celle-ci.
+Par exemple, certaines décisions tels que les demandes de prêts, les décisions de justice, les recrutements de candidats, etc., commencent à être effectuées par des systèmes d'IA, avec peu ou pas de supervision humaine.
+
+Alors que nous déléguons de plus en plus de tâches à ces systèmes, leur fournissant ainsi une autonomie "fonctionnelle", il devient impératif de s'assurer qu'ils accomplissent leurs tâches d'une manière alignée sur nos valeurs, notamment morales, en les dotant de capacités de traitement et de raisonnement à cet effet.
+Cette question a mené lieu à la création du domaine de recherche de l'éthique computationnelle (*Machine Ethics*), visant à doter ces systèmes de moyens de résoudre les dilemmes éthiques qui leur seront posés.
+L'objectif final étant ainsi de s'assurer un impact bénéfique de tels agents sur notre société et sur nos vies.
+
+Dans cette thèse, nous adoptons une approche centrée sur l'humain et proposons des algorithmes permettant à des agents d'artificiels d'apprendre et exhiber des comportements qui soient alignés sur les valeurs définies par les concepteurs du système, en accord avec les préférences des utilisateurs humains et autres parties-prenantes de la société dans laquelle ces agents seront intégrés.
+
+Nos objectifs sont les suivants :
+
+1. Représenter et capturer la diversité des valeurs morales et préférences éthiques au sein d'une société.
+   1. Cette diversité dérive de multiples sources : multiples personnes, multiples valeurs et multiples situations.
+   2. Les valeurs morales couramment acceptées, ainsi que leur définitions, c'est-à-dire le "consensus" éthique faisant partie des normes et mœurs sociétales, peut évoluer sur le temps.
+2. Apprendre des comportements en situation, qui soient correctement alignés sur des valeurs morales humaines.
+   1. Les comportements doivent considérer des situations sans dilemme, qui peuvent impliquer des enjeux éthiques, mais non nécessairement en conflit.
+   2. Les comportements doivent également considérer les situations de dilemme, où les enjeux sont en conflit.
+   3. Le système doit apprendre selon une spécification correctement définie du comportement désiré, afin d'éviter les phénomènes de "reward hacking".
+3. Implémenter un cas d'application prototype afin de démontrer la faisabilité de l'approche.
+
+Pour cela, nous proposons 3 contributions :
+
+1. Deux algorithmes d'apprentissage par renforcement qui apprennent des comportements "en général" (sans emphase particulière sur les dilemmes), en utilisant des domaines continus et en se focalisant particulièrement sur l'adaptation aux changements, à la fois dans les dynamiques de l'environnement et dans les fonctions de récompense.
+
+2. Une méthode hybride se basant sur des jugements symboliques pour construire la fonction de récompense à partir de plusieurs valeurs morales, et permettant la compréhensibilité de la fonction résultante.
+
+3. Une extension multi-objectif des algorithmes d'apprentissage par renforcement qui se focalise sur la résolution de dilemmes, par l'apprentissage des actions intéressantes pour n'importe quelle préférence humaine, l'identification des situations de dilemme et l'apprentissage de comment trancher ces dilemmes explicitement, selon les préférences humaines contextualisées.
+
+
+<!-- État de l'art -->
+
+Dans ce manuscrit, nous explorons l'état de l'art des domaines de l'éthique computationnelle, de l'apprentissage par renforcement, multi-agent et multi-objectif, et de l'IA hybride neuro-symbolique.
+
+Nous en retirons plusieurs propriétés et choix de conception que nous jugeons importants pour notre approche.
+Premièrement, l'apprentissage par renforcement est une méthode appropriée pour apprendre des comportements dépendant des situations.
+Deuxièmement, l'utilisation de domaines continus, à la fois pour les situations mais aussi les actions, permettent une représentation plus riche, plus complexe, mais aussi plus pratique, par rapport aux domaines discrets.
+Troisièmement, les systèmes multi-agents nous permettent d'adresser l'objectif de diversité, en représentant différentes personnes, et en encodant diverses valeurs morales.
+Cela permet des environnements plus réalistes, car de tels agents sont voués à être intégrés à notre société, qui est naturellement multi-agent.
+Quatrièmement, il est important de considérer de multiples valeurs morales ; dans de nombreux cas, nos prises de décisions sont guidées par plusieurs valeurs, et il est important d'entraîner ces agents sur différentes valeurs également.
+Ces valeurs pouvant être en conflit entre elles, cela soulève des questions supplémentaires et demande des mécanismes supplémentaires.
+Finalement, l'utilisation d'une méthode hybride, passant par l'agentification de la construction de la récompense, permet de paver le chemin vers une co-construction entre des agents artificiels et des humains, et facilite l'adaptation à un consensus éthique changeant.
+
+<!-- Cas d'application -->
+
+Afin de prouver la faisabilité de notre approche, nous validons nos contributions sur un simulateur de réseau électrique intelligent (*Smart Grid*), dans lequel les agents sont chargés de se répartir une quantité d'énergie, afin de subvenir aux besoins des habitants qu'ils représentent.
+
+Ce cas d'application, qui n'enlève rien à l'aspect généralisable de nos propositions, s'appuie sur les valeurs morales suivantes :
+
+**Assurance de confort** : les habitants doivent voir leur confort aussi satisfait que possible.
+
+**Abordabilité** : les habitants ne doivent pas payer trop cher pour satisfaire leur confort et accéder à l'électricité.
+
+**Inclusivité** : les habitants doivent avoir un accès équitable à l'électricité et avoir un confort similaire.
+
+**Viabilité environnementale** : les agents doivent éviter d'acheter de l'énergie provenant de sources polluantes.
+
+<!-- Contribution 1 -->
+
+Notre première contribution concerne 2 algorithmes d'apprentissage, nommés Q-SOM et Q-DSOM, qui reposent sur l'utilisation de Cartes Auto-Organisatrices (*Self-Organizing Map* -- SOM), aussi appelées cartes de Kohonen.
+Ces cartes permettent de faire le lien entre des domaines continus pour les états du monde et les actions de l'agent et des identifiants discrets utilisables dans une Q-Table pour apprendre les intérêts de chaque paire état-action, selon un algorithme proche du *Q-Learning*.
+
+Les principaux intérêts de ces deux algorithmes, face aux autres algorithmes de l'état de l'art, résident en :
+
+- leur capacité à manipuler des espaces continus tout en offrant une représentation discrète, ce qui permet une manipulation et une comparaison des états et actions ;
+- leur capacité à s'adapter au changement, grâce aux propriétés des cartes de Kohonen, et de leur extension, les cartes dynamiques (DSOM).
+
+Ces algorithmes sont évalués sur diverses fonctions de récompense, qui intègrent des considérations éthiques, telles que les valeurs morales décrites précédemment.
+Certaines des fonctions mélangent plusieurs de ces considérations, afin de tester la capacité des agents à apprendre plusieurs valeurs morales.
+Enfin, deux des fonctions sont spécifiquement conçues pour changer de définition après un certain nombre de pas de temps, ce qui force les agents à s'adapter afin de maximiser leur espérance de récompenses.
+
+Nous comparons nos algorithmes à d'autres algorithmes de l'état de l'art, tels que DDPG et son extension multi-agent, MADDPG.
+
+
+<!-- Contribution 2 -->
+
+Notre deuxième contribution concerne la construction de la récompense.
+Traditionnellement, les récompenses en apprentissage par renforcement sont calculées par des fonctions numériques.
+Nous proposons d'introduire des agents juges dans l'environnement, chargés de déterminer la récompense pour chacun des agents apprenants, selon les valeurs morales qu'ils représentent, à partir de techniques de raisonnement, telles que des règles logiques ou de l'argumentation.
+
+De tels agents permettent :
+
+- d'expliciter les différentes valeurs morales, et ainsi identifier plus facilement les conflits entre elles ;
+- de spécifier le comportement attendu par un jugement symbolique, en déterminant les éléments acceptables parmi le comportement actuel de l'agent et les éléments inacceptables ou qui doivent être améliorés ;
+- la modification et en particulier l'addition ou la suppression des règles morales par l'ajout ou la suppression d'agents juges ;
+- une meilleure intelligibilité des motivations des agents apprenants, c'est-à-dire des récompenses qu'ils reçoivent.
+
+Nous implémentons cette proposition sous 2 formes différentes.
+La première s'inspire des agents juges Ethicaa et se base sur des agents "Croyances, Désirs, Intentions" (*Beliefs, Desires, Intentions* -- BDI) et des règles logiques afin de produire le raisonnement symbolique.
+La seconde approche se base sur des mécanismes d'argumentation.
+
+Nous comparons ces 2 approches, à la fois vis-à-vis des récompenses numériques traditionnelles, mais aussi entre elles, afin d'évaluer les forces et faiblesses de chacune.
+
+
+<!-- Contribution 3 -->
+
+Notre troisième et dernière contribution se focalise sur la question des dilemmes et vise à intégrer un peu plus l'humain dans la boucle.
+Tandis que la seconde contribution, à des fins de simplification, agrégeait les récompenses produites par chaque agent juge, autrement dit par chaque valeur morale, dans cette contribution, nous étendons l'algorithme d'apprentissage pour recevoir en entrée de multiples récompenses, c'est-à-dire un cadre multi-objectif.
+Les agents apprenants reçoivent ainsi la récompense correspondant à chaque valeur morale individuellement.
+
+Cela leur permet principalement d'identifier les situations de dilemmes, dans lesquelles il est impossible de satisfaire toutes les valeurs morales en même temps.
+À partir de cette identification, nous proposons de "trancher" les dilemmes selon les préférences des utilisateurs.
+Nous postulons que celles-ci sont contextualisées, c'est-à-dire qu'elles dépendent du contexte dans lequel se produit le dilemme : par exemple, nous ne ferions probablement pas le même choix en hiver qu'en été.
+
+L'algorithme d'apprentissage est ainsi modifié afin de :
+
+1. apprendre des actions qui soient intéressantes, quelles que soient les préférences humaines, afin de proposer des compromis aux utilisateurs si un dilemme survient ;
+2. identifier automatiquement, selon une définition que nous proposons, qui s'inspire de la littérature existante, mais qui prend en compte les préférences humaines, les situations de dilemme ;
+3. proposer les alternatives aux utilisateurs et apprendre à trancher ces dilemmes comme ils le souhaitent, en contexte.
+
+Le découpage des dilemmes en contextes se fait en grande partie grâce à l'utilisateur.
+
+Nous créons des profils d'utilisateur fictifs, afin de démontrer la capacité de cette approche à apprendre les préférences utilisateurs et à s'adapter à celui-ci.
+
+
+<!-- Conclusion -->
+
+Ainsi, nos 3 contributions, qui peuvent être prises séparément, mais qui sont conçues pour s'appuyer les unes sur les autres, compensant ainsi les faiblesses de chacune et proposant un cadre général, permettent de répondre à nos objectifs initiaux.
+
+La diversité au sein de la société est traitée par :
+
+- l'utilisation de multiples agents apprenants, qui s'appuient sur des profils différents, à la fois dans leurs habitudes de consommation, mais aussi leurs préférences sur les valeurs morales ;
+- l'utilisation de multiples agents juges, qui représentent des valeurs morales différentes.
+
+L'évolution du consensus éthique est traité par :
+
+- les algorithmes d'apprentissage, qui sont conçus avec cet objectif en tête, qui intègrent des choix de conception cohérents avec celui-ci et qui sont spécifiquement évalués sur cet aspect ;
+- la présence de multiples agents juges, qui facilite les mécanismes d'ajout ou de suppression, donc la modification, des valeurs morales.
+
+L'apprentissage des comportements, avec ou sans emphase sur la notion de dilemmes, est traité par les algorithmes d'apprentissage, dont la première contribution apprend de manière générale, c'est-à-dire que les conflits entre valeurs morales sont moyennés pour obtenir un résultat satisfaisant en moyenne ; la troisième contribution apporte l'emphase sur les dilemmes pour traiter explicitement ces compromis, ce qui rend le système plus performant et également plus intelligible pour l'utilisateur, en explicitant ces points de blocage qu'il ne sait pas ou ne peut pas résoudre.
+
+La construction de la récompense se fait par l'intermédiaire des agents juges, dont le raisonnement symbolique permet notamment d'intégrer des connaissances expertes.
+L'argumentation en particulier est très efficace pour éviter les phénomènes de *reward hacking*, grâce à sa relation d'attaque entre les arguments, afin d'empêcher des comportements précis.
+
+Enfin, l'étude de la faisabilité a été démontrée au fur et à mesure par la conception d'un cas d'application, l'implémentation d'un simulateur et l'évaluation des contributions sur celui-ci.

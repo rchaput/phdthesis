@@ -1,0 +1,36 @@
+Package: rchaput-phdthesis
+Title: RChaput's PhD Thesis
+Version: 0.0.1
+Authors@R: c(
+  person("Remy", "Chaput", , "remy.chaput@univ-lyon1.fr", c("aut", "cre"), list(ORCID = "0000-0002-2233-7566")
+    )
+Description: Source code for the manuscript of Remy Chaput's PhD Thesis.
+URL: https://github.com/rchaput/phdthesis
+Depends:
+    R (>= 4.1.2)
+Imports:
+    acronymsdown,
+    bookdown,
+    flextable,
+    kableExtra,
+    knitr,
+    knitrdrawio,
+    magick,
+    pdftools,
+    remotes,
+    reticulate,
+    thesisdown,
+    tibble,
+    tidyr
+Remotes:
+    ismayc/thesisdown,
+    rchaput/acronymsdown,
+    rchaput/knitrdrawio
+Encoding: UTF-8
+SystemRequirements:
+    libmagick++-dev
+    libcurl4-openssl-dev
+    libpoppler-cpp-dev
+    xvfb
+    libgbm1
+    libasound2

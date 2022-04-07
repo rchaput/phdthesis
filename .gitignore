@@ -4,6 +4,9 @@
 .RData
 .Ruserdata
 
+# Python
+.venv/
+
 # Mac OS X files
 **/.DS_Store
 
@@ -15,6 +18,7 @@ thesis.lol
 thesis.aux
 thesis.bcf
 thesis.out
+thesis.Rmd
 
 # JetBrains
 .idea/**
