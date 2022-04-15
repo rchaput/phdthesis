@@ -1,0 +1,36 @@
+I will (try to) keep this short, as the manuscript is already long enough.
+
+First and foremost, I would like to thank my best friends, Dylan and Kévin, for supporting (and even enduring!) me throughout these 3 years (and even before that).
+Our numerous evenings of playing games have helped me release the stress of my daily (and sometimes nightly) work.
+Dylan deserves a golden (chocolate) medal for hearing my (too many) rants about administrative problems, my unconditional love for Linux, and hatred for Windows (to the point it became a running gag).
+The post-defence buffet would not have been such a success without his help.
+Kévin also deserves a medal for all the laughs we had -- our sessions together were a *heist* of fun! -- and for his legendary Breton crêpes.
+
+Many thanks to Ambre for the (delicious) restaurants we had together, even though my belly fat and wallet do not participate in the appreciation; and to Maëlle for making me discover Friends, and for our "Simpson binge-watching" evenings.
+
+This thesis would probably not have happened without my parents and my family: they have always pushed me towards academic excellence, and have nurtured my curiosity since primary school.
+
+Special thanks to my friends, which, I know, I have not seen enough recently due to this thesis: Pierre, Grégory, Rayane, Bénédicte, and Admo.
+I promise you, now that's finished, we will see each other again!
+
+I would also like to thank all of my colleagues at the LIRIS, who have made this research experience great, and especially my colleagues from the SyCoSMA team: Arthur, Simon (F.), Simon (P.), Bastien, Frédéric, Mathieu, Laetitia, Alain, Véronique.
+I will miss our profound (and sometimes stupid) conversations at lunchtime, but at least we will still have our board games evenings.
+
+Last but not least, my thesis would not have been the same without my co-directors: Salima, Olivier, and Mathieu.
+Thank you for proposing such an interesting subject, accepting me as your PhD candidate, and more importantly, taught me like you did, both in your respective fields and in the general research methodology.
+It was great working with you, and I hope we will be able to continue our fruitful collaboration in the years to come.
+
+I would like to take this opportunity to pay a special homage to Salima in particular, who was kind enough to accept me on this exciting project.
+I was very happy to find something other than Deep Learning and computer vision, and I don't regret my choice after these years!
+Although she was always very (too?) busy, she always took time to help me when I needed it.
+I learned a lot from her (probably a few bad habits along the way, such as checking my email in meetings), and I intend to honor her teachings in my future career.
+
+**And finally, thank *you*, dear reader, for taking the time to read my manuscript!**
+
+```{=latex}
+\begin{flushright}
+    \calligra
+    \large
+    Remy Chaput
+\end{flushright}
+```
