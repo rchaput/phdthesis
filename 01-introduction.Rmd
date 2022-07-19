@@ -10,7 +10,7 @@ Due to this, AI-powered applications are increasingly deployed in our society.
 For example, loans can be granted based on the recommendation of an AI system.
 We might encounter more and more artificial agents, either physical, i.e., robots, or virtual, in the next years.
 
-A potential risk, which is frequently mentioned, is the "Value Alignment Problem" (Dignum, Russell).
+A potential risk, which is frequently mentioned, is the "Value Alignment Problem" [@dignum2019responsible ; @russell2015valueAlignment].
 We can indeed wonder to which degree these systems, while solving their given task, will adopt behaviours that are aligned, or misaligned, with our human values.
 
 This question has led to the rise of several fields of research more or less related to the Ethics of AI.
@@ -94,7 +94,7 @@ From the aforementioned design choices and objectives, we pose the following res
 3. (ref:rq3)
 
 <!-- Contributions -->
-We present 3 contributions that aim to answer our research questions ; they are briefly introduced here.
+We present 3 contributions that aim to answer our research questions; they are briefly introduced here.
 
 1. Two RL algorithms that learn behaviours "in general" (without emphasis on dilemmas), using continuous domains, and particularly focusing on adaptation to changes, both in the environment dynamics and the reward functions.
 
@@ -102,13 +102,13 @@ We present 3 contributions that aim to answer our research questions ; they are 
 
 3. A multi-objective extension to the RL algorithms that focus on addressing dilemmas, by learning interesting actions for any possible human preferences, identifying situations of dilemma, and learning to settle them explicitly, according to contextualized human preferences.
 
-The table \@ref(tab:table-recap-intro) summarizes the relation between the objectives, hypotheses, research questions and contributions.
+Table \@ref(tab:table-recap-intro) summarizes the relation between objectives, research questions and contributions.
 
 
 <!-- Recap Table -->
 ```{r table-recap-intro}
 #| tab.cap: >
-#|   Associations between objectives, design choices, research questions, and contributions.
+#|   Associations between objectives, research questions, and contributions.
 #|   Objective O3 (implementation of prototype use-case) is transverse to all contributions.
 tribble(
   ~RQ, ~C, ~obj,
@@ -127,17 +127,19 @@ tribble(
   add_footer_lines(paste(c(
       "RQ1: How to learn behaviours aligned with moral values, using RL, with continuous domains, in a MAS, such that agents are able to adapt to changes?",
       "RQ2: How to guide the learning through agentification of reward functions, based on several moral values?",
-      "RQ3: How to learn to address dilemmas in situations, according to users' contextualized preferences, in terms of multiple moral values in various situations?",
+      "RQ3: How to learn to address dilemmas in situations, according to users' contextualized preferences, with multiple moral values in various situations?",
       "O1.1: Diversity of ethical stakes",
       "O1.2: Shifting ethical mores",
       "O2.1: Learn non-dilemmas",
       "O2.2: Learn dilemmas",
       "O2.3: Reward specification",
-      "C1: Rl algorithms ; Learning behaviours ; Continuous domains ; Adaptation",
-      "C2: Symbolic judgments ; Agentification of reward functions ; Multiple judges",
-      "C3: Multi-Objective RL ; Dilemmas ; Interaction with users"
+      "C1: Rl algorithms; Learning behaviours; Continuous domains; Adaptation",
+      "C2: Symbolic judgments; Agentification of reward functions; Multiple judges",
+      "C3: Multi-Objective RL; Dilemmas; Interaction with users"
     ), collapse = "\n")) %>%
-  fontsize(size = 8, part = "footer") %>%
+  fontsize(size = 10, part = "body") %>%
+  fontsize(size = 9, part = "header") %>%
+  fontsize(size = 7, part = "footer") %>%
   autofit() %>%
   # set_table_properties(width = 1) %>%
   theme_vanilla()
@@ -148,6 +150,11 @@ tribble(
 
 This manuscript is divided into 7 chapters.
 The (current) first one has introduced the context of this thesis, as well as the objectives and research questions.
+Note that, in each of our contribution chapters, we present both the model and associated experiments and results.
+This allows contributions to be more clearly separated, and presented in an incremental manner.
+Advantages and limitations are immediately highlighted, before moving on to the next contribution chapter.
+In addition, it exemplifies each model by directly applying on a use-case, anchoring them in a practical context on top of the theoretical.
+Nevertheless, it does not detract from the genericity of our approach, which could be extended to other application domains.
 
 Chapter \@ref(sota) explores the different research areas related to our work, namely Machine Ethics, Multi-Agent Reinforcement Learning, Multi-Objective Reinforcement Learning, and Hybrid AI.
 It identifies recent advances, and the remaining challenges.
@@ -155,7 +162,7 @@ An analysis and comparison of existing work raises interesting properties to be 
 continuous domains, multiple agents, multiple moral values, a hybrid approach, the ability to adapt to changes, and interaction with the user.
 Our problematic, objectives and research questions are detailed in the light of these elements.
 
-Chapter \@ref(positioning) specifies our positioning, methodological approach, presents our architecture conceptually and briefly describes our application case.
+Chapter \@ref(positioning) specifies our positioning, methodological approach, presents our architecture conceptually and describes our application case.
 The first part shows our vision of the integration of an artificial intelligence system within a human society, and how to integrate ethical considerations into these systems, through an ethical injection.
 The second part describes our methodology, as a multi-disciplinary approach that we treat incrementally through successive contributions, each validated separately and integrating with the others.
 It also positions our objectives in relation to the challenges identified in the state of the art.
@@ -168,7 +175,7 @@ These algorithms focus on the use of continuous domains and adaptation to change
 They are evaluated on multiple reward functions, testing various moral values, including functions that combine several values, or whose definition changes after a certain number of time steps.
 
 Chapter \@ref(judgments) presents our second contribution: the agentification of reward functions, to compute these rewards through judgments, made by symbolic agents.
-We propose two ways to do this, the first one through logical rules and Beliefs-Desires-Intentions agents, while the second one uses argumentation graphs.
+We propose two ways to do this, the first one through logical rules and Beliefs-Desires-Intentions agents, whereas the second one uses argumentation graphs.
 In both cases, the moral values are explicitly defined by the system designer, and the judging agents reason about them in order to produce their judgment.
 We compare these two ways and evaluate the ability of agents using our learning algorithms to exhibit behaviours that correspond to these reward functions, i.e., that are aligned with the moral values on which they are based.
 
@@ -176,7 +183,7 @@ Chapter \@ref(dilemmas) presents our third and final contribution, which opens u
 This allows agents to consider each of the moral values directly, and thus to identify situations that put one or other of these values in difficulty.
 We propose a definition of "dilemmas" adapted to our framework, which allows agents to recognize situations in which they are unable to satisfy all moral values at the same time.
 We also modify the learning algorithm so that the agents can offer alternatives to the user in these dilemma situations, i.e., actions that satisfy the moral values to different degrees.
-Finally, the agents learn to perform the actions chosen by the users in similar contexts; we particularly emphasize the contextual aspect of user preferences.
+Finally, agents learn to perform the actions chosen by users in similar contexts; we particularly emphasize the contextual aspect of user preferences.
 
 Finally, Chapter \@ref(conclusion) summarizes our contributions, their benefits, and how they address our research questions and objectives.
 It analyzes their various limitations, but also the questions and avenues of research that they open up.

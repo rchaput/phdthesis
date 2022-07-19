@@ -1,0 +1,39 @@
+<!--
+We use the "fenced divs" to place the bibliography here, rather than at the end of the document.
+https://pandoc.org/MANUAL.html#placement-of-the-bibliography
+
+More info is at http://rmarkdown.rstudio.com/authoring_bibliographies_and_citations.html
+-->
+
+<!--
+The following lines change the appearance of the bibliography. It notably reduces
+the text size so that more references appear on one page. It seems to also avoid
+having a reference "cut off" by an end of page.
+The lines were taken from the LaTeX template.
+-->
+\setstretch{1.1}
+\renewcommand{\bibfont}{\normalfont\small}
+\setlength{\biblabelsep}{0pt}
+\setlength{\bibitemsep}{0.5\baselineskip plus 0.5\baselineskip}
+
+# References {-}
+<!--
+This manually sets the header for this unnumbered chapter.
+-->
+\markboth{References}{References}
+<!--
+To remove the indentation of the first entry.
+-->
+\noindent
+
+<!--
+To create a hanging indent and spacing between entries. This line may need 
+to be removed for styles that don't require the hanging indent.
+-->
+
+\setlength{\parindent}{-0.20in}
+
+<!-- Fenced div that will be replaced with the bibliography by Pandoc -->
+
+::: {#refs}
+:::

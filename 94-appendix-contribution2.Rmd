@@ -1,0 +1,142 @@
+<!--
+This file contains the appendices relative to the 2nd contribution only
+(symbolic judging agents).
+-->
+
+# Logic-based rules {#appendix-logic-rules}
+
+We present below the judgment rules for each of the moral values that were used in the experiments.
+
+Affordability:
+```prolog
+valueSupport(sell_energy(X, Payoff), "improve_payoff") :-
+    X > 100.
+
+valueDefeat(buy_energy(X, Payoff, Budget), "improve_payoff") :-
+    X > 100 & Payoff < (-Budget).
+```
+
+Environmental sustainability:
+```prolog
+valueDefeat(buy_energy(X), "promote_grid_autonomy") :-
+    X > 100.
+valueDefeat(sell_energy(X), "promote_grid_autonomy") :-
+    X > 100.
+valueDefeat(grid_consumption(X, OverConsumption),
+            "balance_supply_demand") :-
+    X > 100 & OverConsumption > (3 / 10).
+valueDefeat(storage_consumption(X, EnergyWaste),
+            "balance_supply_demand") :-
+    X > 100 & EnergyWaste > (3 / 10).
+
+valueSupport(buy_energy(X), "promote_grid_autonomy") :-
+    X <= 100.
+valueSupport(sell_energy(X), "promote_grid_autonomy") :-
+    X <= 100.
+valueSupport(give_energy(X), "promote_grid_autonomy") :-
+    X > 0.
+valueSupport(grid_consumption(X), "promote_grid_autonomy") :-
+    X > 0.
+```
+
+Inclusiveness:
+```prolog
+valueDefeat(buy_energy(X,Equity,WellBeing,GlobalWellBeing),
+            "promote_justice") :-
+    Equity < (9 / 10) &
+    Threshold = (12 / 10) * GlobalWellBeing &
+    WellBeing > Threshold.
+valueDefeat(give_energy(X,Exclusion), "promote_justice") :-
+    Exclusion > (5 / 10).
+valueDefeat(grid_consumption(X,Equity,WellBeing,GlobalWellBeing),
+            "promote_justice") :-
+    Equity < (9 / 10) &
+    Threshold = (12 / 10) * GlobalWellBeing &
+    WellBeing > Threshold.
+valueDefeat(sell_energy(X,Exclusion), "promote_justice") :-
+    Exclusion > (5 / 10).
+valueDefeat(sell_energy(X,Equity), "promote_justice") :-
+    Equity < (9 / 10).
+
+
+valueSupport(buy_energy(X,Exclusion), "promote_justice") :-
+    Exclusion >= (5 / 10).
+valueSupport(buy_energy(X,Equity,WellBeing,GlobalWellBeing),
+             "promote_justice") :-
+    Equity < (9 / 10) &
+    Threshold = (9 / 10) * GlobalWellBeing &
+    WellBeing < Threshold.
+valueSupport(give_energy(X,Equity,Exclusion), "promote_justice") :-
+    Equity < (9 / 10) &
+    Exclusion < (5 / 10).
+valueSupport(grid_consumption(X,Exclusion), "promote_justice") :-
+    Exclusion >= (5 / 10).
+valueSupport(grid_consumption(X,Equity,WellBeing,GlobalWellBeing),
+             "promote_justice") :-
+    Equity < (9 / 10) &
+    Threshold = (9 / 10) * GlobalWellBeing &
+    WellBeing < Threshold.
+```
+
+Security of supply:
+```prolog
+valueSupport(grid_consumption(X, WellBeing, GlobalWellBeing),
+             "promote_comfort") :-
+    X > 100 &
+    WellBeing >= (8 / 10).
+
+valueSupport(storage_consumption(X, WellBeing, GlobalWellBeing),
+             "promote_comfort") :-
+     X > 100 &
+     WellBeing >= (8 / 10).
+```
+
+# Argumentation graphs {#appendix-argumentation-graphs}
+
+As previously, we show the "rules" for judgment, this time in the form of argumentation graphs, represented by arguments as nodes, and attacks as edges.
+Arguments can be either a pro-argument, in the $\Fp$, a con-argument, in the $\Fc$, or a neutral argument.
+Let us also recall that arguments can be activated or not, based on the context.
+
+```{drawio appendix-argumentation-graphs-affordability, src="figure/argumentation_graphs.drawio", page.index=0, out.width="100%"}
+#| fig.cap: >
+#|    Argumentation graph of the Affordability moral value.
+```
+
+```{drawio appendix-argumentation-graphs-env, src="figure/argumentation_graphs.drawio", page.index=1, out.width="100%"}
+#| fig.cap: >
+#|    Argumentation graph of the Environmental sustainability moral value.
+```
+
+```{drawio appendix-argumentation-graphs-inclusiveness, src="figure/argumentation_graphs.drawio", page.index=2, out.width="80%"}
+#| fig.cap: >
+#|    Argumentation graph of the Inclusiveness moral value.
+```
+
+```{drawio appendix-argumentation-graphs-supply, src="figure/argumentation_graphs.drawio", page.index=3, out.width="100%"}
+#| fig.cap: >
+#|    Argumentation graph of the Security of supply moral value.
+```
+
+```{drawio appendix-argumentation-graphs-example, src="figure/argumentation_graph_example.drawio", out.width="100%"}
+#| fig.cap: >
+#|    Example of judgment process on the Affordability graph. The judgment relies on the grounded extension, computed from the activated arguments, ignoring the disabled ones.
+```
+
+We also show in Figure \@ref(fig:appendix-argumentation-graphs-example) an example of the judgment process using argumentation graphs.
+The graph is based on the *Affordability* moral value presented above, and updated to judge a specific situation.
+In this situation, the currently judged agent has achieved a very good comfort, by buying a lot of energy, but still has a positive payoff.
+Also, the agent did not over-consume from the grid.
+Thus, some arguments, such as "Over-consume 10%", "Over-consume 20%", and "Over-consume 30%" are disabled: they do not count any more in this situation, and their attacks are removed as well.
+These disabled arguments are shown as more transparent and drawn as "sketchy", compared to the remaining activated arguments.
+Then, we want to compute the *grounded extension*, based on only the activated arguments.
+The grounded extension allows to remove the arguments "Buy energy": although they were activated, they are also attacked by at least one argument, in this case "Good comfort" and "Positive payoff".
+Intuitively, this means that it is acceptable to buy a lot of energy, according to the *affordability* moral value, if this means we can obtain a good comfort, or if we still have a positive payoff.
+Note that, for example, "Over-consume" arguments themselves attack the "Good comfort", meaning that we cannot justify buying a lot of energy to get a good comfort, if we also consume too much from the grid.
+However, in the current situation, the "Over-consume" arguments were disabled, and thus ignored to compute the grounded; a similar reasoning applies to "Bad comfort", with respect to "Positive payoff".
+As the "Buy energy 4" argument is killed, the "Bias" argument is kept in the grounded: it is somehow defended by "Good comfort" and "Positive payoff".
+The arguments in the grounded extension are represented by a bold border, and are in this situation: "Average comfort", "Good comfort", "Positive payoff", and "Bias".
+Finally, the judgment function takes these arguments, identifies those in the $\Fp$ and in the $\Fc$, and potentially compares them to the total number of pros and cons arguments in the original graph.
+For example, we can see that 2 out of the 3 possible pros arguments are in the grounded extension: "Not buy energy" was disabled because of the situation.
+None of the cons arguments are in the grounded extension.
+Thus, the resulting reward may be high, but not the maximum, depending on the actual judgment function.
+

@@ -1,7 +1,7 @@
 The past decades have seen tremendous progress of Artificial Intelligence techniques in many fields, reaching or even exceeding human performance in some of them.
 This has led to computer systems equipped with such AI techniques being deployed from the constrained and artificial environments of laboratories into our human world and society, in order to solve tasks with real and tangible impact.
-These systems have a more or less direct influence on humans, be it their lives in the most extreme cases, or in a more subtle but ubitquitous way, their daily lives.
-This raises questions about their ability to act in accordance with the (moral) values that are important to us.
+These systems have a more or less direct influence on humans, be it their lives in the most extreme cases, or in a more subtle but ubiquitous way, their daily lives.
+This raises questions about their ability to act in accordance with the moral values that are important to us.
 
 Various fields of research have addressed aspects of this problem, such as the ability to provide fair and just decisions, or the ability to be intelligible, thus providing human users with reasons to trust them, and to know when not to trust.
 In this thesis, we focus particularly on the area of *Machine Ethics*, which is concerned with producing systems that have the means to integrate ethical considerations, i.e., systems that make ethical decisions in accordance with the human values that are important to society.
@@ -28,12 +28,12 @@ We draw on multi-objective learning techniques to propose an approach capable of
 We evaluate these contributions on an application use-case that we propose, define, and implement: the allocation of energy within a *smart grid*.
 
 **Keywords**:
-Machine Ethics ;
-Artificial Moral Agents ;
-Multi-Agent Systems ;
-Multi-Agent Reinforcement Learning ;
-Multi-Objective Reinforcement Learning ;
-Ethical Judgment ;
-Hybrid Neural-Symbolic Learning ;
-Moral Dilemmas ;
+Machine Ethics\ ;
+Artificial Moral Agents\ ;
+Multi-Agent Systems\ ;
+Multi-Agent Reinforcement Learning\ ;
+Multi-Objective Reinforcement Learning\ ;
+Ethical Judgment\ ;
+Hybrid Neural-Symbolic Learning\ ;
+Moral Dilemmas\ ;
 Human Preferences

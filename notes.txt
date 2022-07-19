@@ -54,3 +54,9 @@ TODO: Clean included packages in the LaTeX template.
   options should we keep.
 
 TODO: Make a glossary of notations and definitions in an appendix.
+
+Appendices:
+- https://tex.stackexchange.com/questions/25191/appendix-chapters-typeset-as-sections-in-toc
+- https://latex.org/forum/viewtopic.php?t=1750
+- https://latexref.xyz/_005caddcontentsline.html
+- https://tex.stackexchange.com/questions/286968/grouping-together-sections-in-toc

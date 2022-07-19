@@ -1,0 +1,4 @@
+`r if(knitr:::is_latex_output()) '\\appendix \\addcontentsline{toc}{part}{\\protect\\numberline{}Appendices}'`
+
+`r if(!knitr:::is_latex_output()) '# (APPENDIX) Appendix {-}'`
+

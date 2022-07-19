@@ -1,18 +1,57 @@
 
+% Operators
 \DeclareMathOperator*{\argmin}{argmin}
+
+\newcommand{\RR}{\mathbb{R}}  % Real space
+
+\newcommand{\length}[1]{\vert#1\vert}
+
+% RL
+\newcommand{\StateSpace}{\mathbb{S}}  % Space of states
+\newcommand{\ObsSpace}{\mathbb{O}}  % Space of observations
+\newcommand{\ActionSpace}{\mathbb{A}}  % Space of actions
+\newcommand{\Q}{\texttt{Q}}  % Q function
+\newcommand{\V}{\texttt{V}}  % Value function
+\newcommand{\pos}{\texttt{P}}  % Position function (in a SOM)
+\newcommand{\RewardFn}{\texttt{R}}
+
+\newcommand{\LAgts}{\mathcal{L}}  % Set of learning agents
+
+% Judging (Logic)
+\newcommand{\Beliefs}{\mathcal{B}}  % Set of beliefs
+\newcommand{\ME}{\texttt{ME}}  % Moral Evaluation function
+\newcommand{\Feedback}{\texttt{F}}  % Feedback function
+\newcommand{\BeliefSpace}{\mathbb{B}}  % Space of possible beliefs
+\newcommand{\ValSpace}{\mathcal{V}}  % Set of possible valuations
+\newcommand{\Judgment}{\texttt{Judgment}}
+\newcommand{\moral}{\mathit{moral}}
+\newcommand{\immoral}{\mathit{immoral}}
+\newcommand{\neutral}{\mathit{neutral}}
+
+% Judging (Argumentation)
+\newcommand{\JAgts}{\mathcal{J}}
 \newcommand{\Args}{\mathcal{A}rgs}
 \newcommand{\Att}{\mathcal{A}tt}
 \newcommand{\Fp}{\mathcal{F}_p}
 \newcommand{\Fc}{\mathcal{F}_c}
 \newcommand{\SA}{\mathcal{SA}rgs}
-\newcommand{\JAgts}{\mathbb{J}}
-\newcommand{\LAgts}{\mathbb{L}}
 \newcommand{\Jj}{\mathtt{J}_j}
 \newcommand{\gagr}{\mathtt{g_{agr}}}
-\newcommand{\States}{\mathcal{S}}
-\newcommand{\FpInGrd}{\mathit{grd}_{[\Fp]}}
-\newcommand{\FcInGrd}{\mathit{grd}_{[\Fc]}}
+\newcommand{\grd}{\mathit{grd}}
+\newcommand{\FpInGrd}{\grd_{[\Fp]}}
+\newcommand{\FcInGrd}{\grd_{[\Fc]}}
 \newcommand{\FpTotal}{AF_{[\Fp]}}
 \newcommand{\FcTotal}{AF_{[\Fc]}}
-\newcommand{\length}[1]{\vert#1\vert}
+
+% Dilemmas (MORL)
 \newcommand{\gPareto}{>_{Pareto}}
+\newcommand{\Profiles}{\mathcal{P}}
+\newcommand{\DiscreteStates}{\mathcal{S}}
+\newcommand{\StateFn}{\texttt{States}}
+\newcommand{\DiscreteActions}{\mathcal{A}}
+\newcommand{\ActionFn}{\texttt{Actions}}
+\newcommand{\PFFn}{\texttt{PF}}
+\newcommand{\ThresholdSpace}{\mathbb{Z}}
+\newcommand{\optimal}{\mathit{optimal}}
+\newcommand{\ContextFn}{\texttt{Context}}
+\newcommand{\Contexts}{\mathcal{C}}

@@ -1,159 +1,49 @@
-# Overview, discussion, and perspectives {#conclusion}
+# Synthesis, discussion, and perspectives {#conclusion}
 
-<!-- TODO: replace "overview"? -->
-
-In this final chapter, we summarize our contributions, and reflect on the proposed work.
+In this final chapter, we summarize our answers to the problem and research questions, and reflect on the proposed contributions.
 The first section makes a synthesis of the 3 contributions, and we particularly highlight how they answer the defined objectives.
-The second section describes the limitations and perspectives offered by our work ; as we have already mentioned them for each contribution individually, we focus here on the most important ones, which pertain more specifically to the global architecture rather than an individual contribution.
+The second section describes the limitations and perspectives offered by our work; we outline here the salient points of each contribution and how they relate to the global architecture, as the details have been discussed in the chapters on each contribution.
 
-## Synthesis
+## Main results
 
-In this manuscript, 3 contributions were presented.
-The first one focuses on learning behaviours through reinforcement learning algorithms that particularly emphasize the adaptability of agents to changes in the environment dynamics, including in the reward function, i.e., in the expected behaviour.
+In the state of the art in Section \@ref(sota-machineethics), we notably presented a set of properties that we deem important for the implementation of artificial moral agents:
+
+* Continuous domains allow for use-cases that can be difficult to represent using discrete domains.
+* Multi-agent is more realistic, as the human society is inherently multi-agent, and artificial agents are bound to be integrated into our society, in one form or another.
+* Multiple moral values offer more diversity and better represent human moral reasoning.
+* The capacity to adapt to changes is crucial as the social mores constantly evolve.
+
+We have also described our methodology in Section \@ref(positioning-methodology), for which we emphasize some of the properties:
+
+* Pluri-disciplinarity is important as AI experts do not usually have the necessary domain knowledge, in particular in moral philosophy.
+* Putting humans in control and reflecting in terms of Socio-Technical Systems ensures that the (technical) system is aligned with humans, rather than humans being forced to align themselves with the system.
+* Diversity, especially of moral values and of human preferences, is a necessity as we have different ethical considerations.
+
+These properties echo the ethical model that we introduced in Section \@ref(positioning-ethicalmodel).
+This model could be leveraged by other works; one of the main points to retain is that producing systems ethically-aligned, whether they focus on producing "ethical behaviours", or simply take ethical considerations as part of their behaviours, requires a discussion with a large audience, consisting of designers, users, stakeholders, philosophers, etc.
+As these various people have different knowledge and expertise, this discussion necessitates in itself to reach a common ground of explaining the key choices when constructing a system.
+These choices, which we name the "ethical injection", reflect what we want the machine to take into account.
+
+Finally, we presented 3 contributions in this manuscript.
+The first one focused on learning behaviours through reinforcement learning algorithms that particularly emphasize the adaptability of agents to changes in the environment dynamics, including in the reward function, i.e., in the expected behaviour.
 The second one tackled the construction of the reward function and replaced the traditional mathematical functions with an aggregated multi-agent symbolic judgment, relying on explicitly defined moral values and rules.
 Finally, the third one opened up the question of dilemmas and replaced the aggregation of the second contribution with a new process that allows learning agents to identify situations of conflicts between moral values, and to address such dilemmas according to human preferences.
 
-### Learning behaviours
-
-In this first contribution chapter, we have proposed 2 reinforcement algorithms, named *Q-SOM* and *Q-DSOM*.
-These algorithms are not exclusive to the learning of ethical considerations, or morally-aligned behaviours, in the sense that they do not explicitly rely on ethical components, such as moral values, moral supports or transgressions, etc.
-However, when designing them, we have taken into account the various challenges identified from the state of the art that pertain to our problematic of learning morally-aligned behaviours.
-In particular, we mentioned that there was a lack of approaches targeting continuous domains ; this is a problem, as such domains may be necessary, or at least more practical, to describe some situations or use-cases, with the example of our Smart Grid energy distribution.
-This is true for both describing situations, e.g., with the inequality measure, and actions, e.g., multiple amounts of energy to choose.
-In order to introduce more diversity in the experiments, we introduce multiple learning agents: they each encounter different experiences, and thus exhibit various behaviours ; they also embed one of several profiles that dictates their needs and available actions.
-Another aspect that shaped our algorithms was the notion of privacy: as the learning agents represent human users, it would certainly not be acceptable to share their data with every other agent.
-Some sharing is necessary at some point, at least in a centralized component which computes the rewards, yet, the learning agents do not have access to other agents' data, neither their observations, actions, nor rewards.
-Finally, the most important challenge here is the "Continuous Learning", as defined by @nallur2020landscape, or as we call it, the ability to adapt to changes.
-This is particularly crucial within Machine Ethics, as the ethical consensus may shift overtime.
-
-In order to address these challenges, the Q-(D)SOM algorithms are based on Self-Organizing Maps (SOMs), which allow them a mapping between continuous and discrete domains.
-Thus, multi-dimensional and continuous observations can each be associated with a discrete state ; similarly, a set of discrete action identifiers are linked to continuous action parameters.
-The interest of performing an action in a situation, i.e., the expected reward horizon from that action and the resulting situation, is learned in a Q-Table, a tabular structure that relies on discrete state identifiers for the rows, and action identifiers for the columns.
-The learning mechanisms, and in particular the exploration-exploitation dilemma, have been specifically designed to allow adaptation to changes.
-Regarding the notion of privacy, we have designed the simulator and the algorithms in such a way that agents do not obtain information about their neighbours, which seems more acceptable.
-On the other hand, this complicates their learning, as the behaviours of other agents in the environment represent a kind of "noise" on which they have no information.
-In order to counterbalance this effect, we use *Difference Rewards*, which calculate the contribution of each agent, by comparing the current state of the environment with a hypothetical state in which the agent would not have acted.
-
-To evaluate these algorithms, several "traditional" reward functions, i.e. mathematical formulas, target various moral values, such as the well-being of agents, or the equity of comforts.
-Some of these functions target several moral values at the same time, using simple aggregation, or are designed so that their definition evolves over time: new moral values are added as they as time goes by.
-The results show that our algorithms learn better than 2 state-of-the-art baseline algorithms, DDPG and MADDPG.
-It also seems that the size of the environment, i.e., the number of learning agents, has an impact on the learning performance: it is more difficult for the agents to learn the dynamics of the environment when there are more elements that impact these dynamics.
-However, the results remain satisfactory with a high number (50) of agents.
-
-### Constructing rewards through symbolic judgments
-
-In the second contribution chapter, we have focused on the construction of rewards.
-The need for this contribution stems mainly from 2 objectives: first, the need of correctly specifying the expected behaviour so that the agent can not "game" or "hack" the reward function, and secondly, a better usability and understandability of the reward function for external users or regulators.
-Reward hacking is a well-known phenomena in reinforcement learning, in which the agent learns to maximize its received reward by adopting a behaviour that corresponds to the criteria implemented in the reward function, but does not actually represent what the designer had in mind.
-For example, an agent could circle infinitely around a goal without ever reaching it, to maximize the sum of rewards on an infinite horizon.
-Within the Machine Ethics community, it would be an important problem if the agent learned to "fake" acting ethically.
-The reward function should thus be designed to prevent reward hacking, or at least to be easily repaired when reward hacking is detected.
-<!-- TODO: mention other approaches that try to prevent reward hacking, e.g., potential-based rewards? -->
-The second objective itself encompasses 2 concepts: usability and understandability.
-Indeed, as the reward function must signal the expected behaviour to the learning agent, and thus appropriately encode the relevant moral values and more largely, ethical considerations, the AI experts are not always the most competent to design it.
-The specificities of the application domain and the ethical considerations could be best apprehended by domain experts and moral philosophers.
-Yet, it may be difficult for them to produce a mathematical function that describes the expected behaviour, and this is why another form of reward function is needed.
-On the other hand, understandability is important for all humans, not only the designers.
-Human users may be interested in what the expected behaviour is ; regulators may want to ensure that the system is acceptable, with respect to some criteria, which can include the law.
-As we mentioned in the state of the art, this understandability may be difficult when the reward function is a mathematical formula and/or leverages a large dataset.
-
-Whereas the previous chapter used mathematical functions, this contribution proposes to leverage symbolic judgment.
-This results in a sort of exogenous hybrid neural-symbolic combination, in which the learning agents implement the neural learning process, and the judging agents implement the symbolic judgment, or reward signal.
-The 2 sets of agents act in a loop decision-judgment-learning, and the learning agents learn to capture and exhibit the ethical considerations that are explicitly defined in the judgment, i.e., the moral values.
-An advantage of this learning-judgment combination is that the resulting behaviour can benefit from the flexibility and adaptation of the learning: assuming that, in an example situation, it is infeasible for the agent to satisfy all moral values, the agent will find the action that provides the best trade-off.
-This computation relies on the Q-Values, which take into account the horizon of expected rewards, i.e., the sequence of received rewards from the next situation.
-Thus, human designers can simply design the judgment based on the next step, and do not necessarily need to consider future events, yet, learning agents will still take them into account.
-
-Two different models, and their implementation, have been proposed.
-The first one, LAJIMA, relies on Beliefs-Desires-Intentions (BDI) agents, and more specifically simplified Ethicaa agents [@cointe2016ethicalJudgmentAgents], which implement a set of logic rules.
-On the other hand, the second one, AJAR, uses argumentation graphs to determine the correctness of an action with respect to moral values.
-In both cases, several moral values are explicitly considered, either through different BDI agents, or several argumentation graphs.
-We note that logic and argumentation are very similar, and, in definitive, there is no theoretical difference in their expressiveness.
-However, there is a difference in their ease of use: we argue that argumentation graphs are easier to grasp for external users or regulators, thanks to their visual representation.
-In addition, the attack relationship of argumentation allows to easily prevent a specific behaviour, which answers our objective O2.3 of avoiding "gaming" behaviours or mis-alignments.
-
-The experiments have shown that learning agents are still able to learn from symbolic judgments.
-However, the results could have been better, especially for the LAJIMA model.
-The rules that we defined were perhaps too naive ; they suffice as a proof-of-concept first step, but they certainly need to be improved to provide more information to the learning agents.
-In this regard, a technical implementation advantage of AJAR was that any number of arguments could be used as *positive* or *negative* feedbacks, whereas we fixed this number to the number of dimensions of the action space in LAJIMA, e.g., $d=6$ for our Smart Grid use-case.
-Thus, the gradient of the reward was better in AJAR, but at the expense of an additional hyperparameter: the judgment function, which transforms a set of arguments into a reward, i.e., a scalar.
-
-The main idea to retain from this chapter is to leverage symbolic elements and methods to compute the rewards.
-We have proposed BDI agents with logic rules, and argumentation graphs, as such symbolic methods, but perhaps others could be used as well.
-Many other forms of logics have been used within Machine Ethics, e.g., non-monotonic logic [@ganascia2007ethical], deontic logic [@arkoudas2005toward], abductive logic [@pereira2007modelling], and more generally, event calculus [@bonnemains2018embedded].
-We argue that argumentation in particular offers interesting theoretical advantages, namely the attack relationship and the graph structure that allow both repairing reward "gaming", and an easy visualization of the judgment process.
-Still, our idea hopefully opens a new line of research, and an empirical and more exhaustive comparison of symbolic methods for judgment would be important.
-
-### Identifying and addressing dilemmas
-
-In the third and final contribution chapter, we focused on the notion of dilemma, i.e., a situation in which multiple moral values are in conflict and cannot be satisfied at the same time.
-We want the learning agents to exhibit behaviours that take into account all defined ethical considerations, mainly represented by moral values, but when they cannot do so, how should they act?
-This is related to our objective O2.2, which states that "Behaviours should consider dilemmas situations, with conflicts between stakes".
-In the state of the art, we have seen that numerous multi-objective reinforcement learning (MORL) approaches already exist, and several of them use preferences to select the best policy.
-However, their preferences are defined as a set of weights: this is, in our opinion, an easily usable definition for machines, but quite hard for humans.
-Thus, we have tried and proposed an alternative definition of "preferences", based on selecting an action.
-To avoid forcing the user to make a choice every time a dilemma is identified, which can become a burden as the number of dilemmas increase, the learning agents should learn to apply human preferences and automatically select the same actions in similar dilemmas.
-
-To solve these tasks, we have extended the Q-(D)SOM algorithms, and proposed a 3-steps approach.
-First, interesting actions are learned, so that, when a dilemma is identified, we can offer various interesting alternative actions to the user, and we know that we can compare them fairly, i.e., that they have similar uncertainty on their interests, or Q-Values.
-This is done by separating the learning into a bootstrap and a deployment phases.
-During the bootstrap, agents learn different exploration profiles that use a vector of weights to explore various sub-zones of the action space.
-We emphasize that these weights are defined by the system designers, instead of lay users, and are solely used for exploration, not for action selection: this makes our approach different from existing MORL works.
-On the other hand, during deployment, agents have access to multiple exploration profiles so that they can propose actions obtained from different sub-zones of the action space, e.g., one action can focus on high interest for the *well-being* moral value, whereas another can focus on the *environmental sustainability* value.
-The second step identifies dilemmas, by computing a Pareto Front of the various actions, i.e., retaining only the actions that are not dominated by another action.
-A dominated action has strictly lower interests for all moral values: we have at least one better action, and should not consider the dominated one.
-To determine whether the situation is a dilemma, we compare the remaining actions' interests to *ethical thresholds*, chosen by the human user, which are a set of thresholds, one for each moral value.
-Thus, different human users may have different expectations for the moral values: one can consider an action to be acceptable if the *well-being* is at least 90% satisfied and the *environmental sustainability* at least 80%, whereas another may consider it to be acceptable if the *environmental sustainability* is at least 60% satisfied.
-To simplify the definition of such ethical thresholds for lay users, we also learn the *theoretical* interests of actions, i.e., the interests they would have if they had received the maximum reward each time they were selected.
-The actions' interests are compared to the theoretical ones, such that the ratio yields a value between $0$ and $1$.
-This range can be intuitively understood: $0$ means that the action does not satisfy the moral value, whereas $1$ means perfect satisfaction, unlike the Q-Values themselves, which are unbounded.
-If at least one of the proposed actions in the Pareto Front, for a given situation, is deemed acceptable, i.e., if all its interests are over their corresponding ethical threshold, the situation is not a dilemma, and the agent takes one of the acceptable actions.
-Otherwise, the situation is a dilemma, and we must resort to the human preferences.
-Thus, our proposed definition of a dilemma depends on the human user: this means that the same situation can be considered as a dilemma for one human user, and not a dilemma for another user.
-We consider this an advantage.
-Finally, when a situation is an identified dilemma, we take an action based on the human preferences.
-We assume that human preferences depend on the situation: we may not always prefer the same moral values.
-To avoid asking the user too much, e.g., each time a dilemma is encountered, we introduce the notion of *contexts* to group similar dilemmas.
-Let us recall that situations are defined by a set of observations, i.e., values in $\mathbb{R}^g$ ; we propose that users define a context as a set of bounds, a lower and an upper, for each dimension of the observation space.
-Intuitively, it is similar to drawing a polytope in the observation space: a situation belongs to this context if its observations are inside the polytope.
-When a context is created, the user also specifies which action should be taken ; the same action is automatically selected by the artificial agent whenever an identified dilemma falls within the same context.
-
-Perhaps the most important aspect of our contribution is that we focus on giving control back to the human users.
-This is done through several mechanisms: the selection of ethical thresholds, the creation of contexts, and the definition of a *preference* as an action choice rather than a weights vector.
-The ethical thresholds allow controlling the system's sensibility, i.e., to which degree situations will be flagged as dilemmas.
-By setting the thresholds accordingly, the human user may choose the desired behaviour, e.g., always taking the action that maximizes, on average, the interests for all moral values, and thus acting in full autonomy, or, at the opposite extreme, recognizing all situations as dilemmas and thus always relying on the human preferences, or anything else in between.
-We note that our approach can therefore be used as a step towards a system that acts as an *ethical decision support*, i.e., a system that helps human users take better decisions by providing them with helpful information.
-
-Finally, we argued that our proposed definition of a *preference*, i.e., choosing an action among a set of alternatives, is easier for humans than the traditional weights vector ; yet, other forms of preferences could be explored.
-We could even imagine a system that would automatically learn preferences by observing the human user's behaviour and choices in various situations, not necessarily linked to the current application domain, as a matter of fact.
-This can be linked to the idea of an "ethics bot", which @etzioni2017incorporating define as follows:
-
-> An ethics bot is an AI program that analyzes many thousands of items of information (not only publicly available on the Internet but also information gleaned from a person's local computer storage and that of other devices) about the acts of a particular individual in order to determine that person's moral preferences.
-
-These ideas, ethical decision support and ethics bot, are a bit far from our work, as we instead propose to directly ask users for their preferences, and we try to teach the agents how to "behave ethically", or, more precisely, to exhibit a behaviour aligned with moral values.
-However, it illustrates that some parts of our contributions can be linked, and even reused or extended, to different lines of research within the Machine Ethics community.
-
-### Summary of contributions with respect to objectives
-
-<!-- TODO: rename this sub-section? -->
-
-We have presented in the introduction a set of objectives that should be targeted in this thesis.
+We presented in Chapter \@ref(introduction) a set of objectives that should be targeted in this thesis.
 Table \@ref(tab:conclusion-recap-objectives) shows that each of them is handled in at least one of our 3 contributions.
 We recall that the 3rd objective, implementing a prototype, was tackled throughout each contribution by the means of the Smart Grid simulator, which was used for the experiments.
 The simulator was updated when necessary, e.g., making a connection to the Ethicaa platform in the LAJIMA model, or adding a simple user interface to present dilemmas and capture human preferences in the last contribution.
 Thus, our thesis accordingly answers all objectives.
-
-Nevertheless, this does not mean that these objectives can be considered "closed": we have presented in each contribution chapter some perspectives, and, in the next section, we provide additional ones that pertain more to the global proposed architecture rather than individual components.
-Yet, we consider that we have made a substantial contribution to each of these objectives.
+In the following subsections, we recapitulate these contributions and their advantages.
 
 ```{r conclusion-recap-objectives}
 #| tab.cap: >
-#|   Recapitulative table of objectives ; each one is tackled by at least one
+#|   Recapitulative table of objectives; each one is tackled by at least one
 #|   contribution.
 tribble(
   ~obj, ~C,
   "O1.1 Diversity", "C1 + C2 + C3",
-  "O1.2 Ethical consensus shifting", "C1 + C3",
+  "O1.2 Ethical consensus shifting", "C1",
   "O2.1 Learning non-dilemmas", "C1",
   "O2.2 Learning dilemmas", "C3",
   "O2.3 Reward specification", "C2"
@@ -161,56 +51,171 @@ tribble(
   flextable() %>%
   align(align = "center", part = "all") %>%
   set_header_labels(C = "Contribution(s)", obj = "Objective") %>%
-  # add_footer_lines(paste(c(
-  #     "RQ1: How to learn behaviours aligned with moral values, using RL, with continuous domains, in a MAS, such that agents are able to adapt to changes?",
-  #     "RQ2: How to guide the learning through agentification of reward functions, based on several moral values?",
-  #     "RQ3: How to learn to address dilemmas in situations, according to users' contextualized preferences, in terms of multiple moral values in various situations?",
-  #     "O1.1: Diversity of ethical stakes",
-  #     "O1.2: Shifting ethical mores",
-  #     "O2.1: Learn non-dilemmas",
-  #     "O2.2: Learn dilemmas",
-  #     "O2.3: Reward specification",
-  #     "C1: Rl algorithms ; Learning behaviours ; Continuous domains ; Adaptation",
-  #     "C2: Symbolic judgments ; Agentification of reward functions ; Multiple judges",
-  #     "C3: Multi-Objective RL ; Dilemmas ; Interaction with users"
-  #   ), collapse = "\n")) %>%
-  # fontsize(size = 8, part = "footer") %>%
   autofit() %>%
-  # set_table_properties(width = 1) %>%
   theme_vanilla()
 ```
 
-## Limitations and perspectives
+Nevertheless, this does not mean that these objectives can be considered "closed": we presented in each contribution chapter some perspectives, and, in Section \@ref(conclusion-limitations), we provide additional ones that pertain more to the global proposed architecture rather than individual components.
+Yet, we consider that we have made a substantial contribution to each of these objectives.
+
+### Learning behaviours
+
+The first contribution consists in 2 reinforcement algorithms, named *Q-SOM* and *Q-DSOM* (see Chapter \@ref(learning)).
+These algorithms target the various challenges identified from the state of the art that pertain to our problematic of learning morally-aligned behaviours.
+In particular, there was a lack of approaches targeting continuous domains; this is a problem, as such domains may be necessary, or at least more practical, to describe some situations or use-cases, with the example of our Smart Grid energy distribution.
+This is true for both describing situations, e.g., with the inequality measure, and actions, e.g., various amounts of energy to choose.
+In order to introduce more diversity in the experiments, as per the methodology and objective O1.1, we introduced multiple learning agents: they each encounter different experiences, and thus exhibit various behaviours; they also embed one of several profiles that dictates their needs and available actions.
+Another aspect that shaped our algorithms was the notion of privacy: as the learning agents represent human users, it would certainly not be acceptable to share their data with every other agent.
+Some sharing is necessary at some point, at least in a centralized component which computes the rewards, yet, the learning agents do not have access to other agents' data, neither their observations, actions, nor rewards.
+Finally, the most important challenge here is the "Continuous Learning", as defined by @nallur2020landscape, or as we call it, the ability to adapt to changes.
+This is particularly crucial within Machine Ethics, as the ethical consensus may shift overtime.
+We note that these algorithms are not exclusive to the learning of ethical considerations, or morally-aligned behaviours, in the sense that they do not explicitly rely on ethical components, such as moral values, moral supports or transgressions, etc.
+
+In order to address these challenges, the Q-(D)SOM algorithms are based on Self-Organizing Maps (SOMs), which allow them a mapping between continuous and discrete domains.
+Thus, multi-dimensional and continuous observations can each be associated with a discrete state; similarly, a set of discrete action identifiers are linked to continuous action parameters.
+The interest of performing an action in a situation, i.e., the expected reward horizon from that action and the resulting situation, is learned in a Q-Table, a tabular structure that relies on discrete state identifiers for the rows, and action identifiers for the columns.
+The Q-Table, along with the State-(D)SOM and Action-(D)SOM, are used to learn the behaviours in various situations, which corresponds to objective O2.1.
+Learning mechanisms, and in particular the exploration-exploitation dilemma, were specifically designed to allow adaptation to changes, to address objective O1.2.
+Regarding the notion of privacy, we designed the simulator and the algorithms in such a way that agents do not obtain information about their neighbours, which seems more acceptable.
+On the other hand, this complicates their learning, as the behaviours of other agents in the environment constitute a kind of "noise" on which they have no information.
+In order to counterbalance this effect, we use *Difference Rewards*, which calculate the contribution of each agent, by comparing the current state of the environment with a hypothetical state in which the agent would not have acted.
+
+We have evaluated these algorithms by using several "traditional" reward functions, i.e. mathematical formulas, which target various moral values, such as the well-being of agents, or the equity of comforts.
+Some of these functions target several moral values at the same time, using simple aggregation, or are designed so that their definition evolves over time: new moral values are added as time goes by.
+The results show that our algorithms learn better than 2 state-of-the-art baseline algorithms, DDPG and MADDPG.
+It also seems that the size of the environment, i.e., the number of learning agents, has an impact on the learning performance: it is more difficult for the agents to learn the dynamics of the environment when there are more elements that impact these dynamics.
+However, the results remain satisfactory with a high number (50) of agents.
+
+### Constructing rewards through symbolic judgments
+
+The second contribution consists in the construction of rewards through the agentification of symbolic judgments (see Chapter \@ref(judgments)).
+The need for this contribution stems mainly from objective O2.3: the need of correctly specifying the expected behaviour to express the significance of moral values, which include preventing the agent from "gaming" or "hacking" the reward function
+Additionally, a better usability and understandability of the reward function for external users or regulators constitutes a secondary objective for this contribution.
+Reward hacking is a well-known phenomena in reinforcement learning, in which the agent learns to maximize its received reward by adopting a behaviour that corresponds to the criteria implemented in the reward function, but does not actually represent what the designer had in mind.
+For example, an agent could circle infinitely around a goal without ever reaching it, to maximize the sum of rewards on an infinite horizon.
+Within the Machine Ethics community, it would be an important problem if the agent learned to "fake" acting ethically.
+The reward function should thus be designed to prevent reward hacking, or at least to be easily repaired when reward hacking is detected.
+The second objective itself encompasses 2 concepts: usability and understandability.
+Indeed, as the reward function must signal the expected behaviour to the learning agent, and thus appropriately encode the relevant moral values and more largely, ethical considerations, the AI experts are not always the most competent to design it.
+The specificities of the application domain and the ethical considerations could be best apprehended by domain experts and moral philosophers.
+Yet, it may be difficult for them to produce a mathematical function that describes the expected behaviour, and this is why another form of reward function is needed.
+On the other hand, understandability is important for all humans, not only the designers.
+Human users may be interested in what the expected behaviour is; regulators may want to ensure that the system is acceptable, with respect to some criteria, which can include the law.
+As we mentioned in the state of the art, this understandability may be compromised when the reward function is a mathematical formula and/or leverages a large dataset.
+
+Whereas the previous contribution used mathematical functions, this contribution proposed to leverage symbolic judgment.
+We propose a new architecture of an exogenous, multi-agent hybrid combination of neural and symbolic elements.
+This architecture agentifies the reward function, where judging agents implement the symbolic judgment that forms the reward signal, and learning agents implement the neural learning process.
+The two sets of agents act in a decision-judgment-learning loop, and the learning agents learn to capture and exhibit the ethical considerations that are injected through the judgment, i.e., the moral values.
+An advantage of this learning-judgment combination is that the resulting behaviour can benefit from the flexibility and adaptation of the learning: assuming that, in an example situation, it is infeasible for the agent to satisfy all moral values, the agent will find the action that provides the best trade-off.
+This computation relies on the Q-Values, which take into account the horizon of expected rewards, i.e., the sequence of received rewards from the next situation.
+Thus, human designers can simply design the judgment based on the current step, and do not necessarily need to consider future events, yet, learning agents will still take them into account.
+
+Two different models, and their implementation, were proposed.
+The first one, LAJIMA (Logic-based Agents for JudgIng Morally-embedded Actions), relies on Beliefs-Desires-Intentions (BDI) agents, and more specifically on simplified Ethicaa agents [@cointe2016ethicalJudgmentAgents], which implement a set of logic rules.
+On the other hand, the second one, AJAR (Argumentation-based Judging Agents for ethical Reinforcement learning), uses argumentation graphs to determine the correctness of an action with respect to moral values.
+In both cases, several moral values are explicitly considered, either through different BDI agents, or several argumentation graphs, which adds diversity to the use-case, as per objective O1.1.
+We note that logic and argumentation are very similar, and, in definitive, there is no theoretical difference in their expressiveness.
+However, there is a difference in their ease of use: we argue that argumentation graphs are easier to grasp for external users or regulators, thanks to their visual representation.
+In addition, the attack relationship of argumentation allows to easily prevent a specific behaviour, which further answers our objective O2.3 of avoiding "gaming" behaviours or mis-alignments.
+
+The experiments have shown that learning agents are still able to learn from symbolic judgments.
+However, the results could have been better, especially for the LAJIMA model.
+The rules that we defined were perhaps too naive; they suffice as a proof-of-concept first step, but they certainly need to be improved to provide more information to the learning agents.
+In this regard, a technical implementation advantage of AJAR was that any number of arguments could be used as *positive* or *negative* feedbacks, whereas we fixed this number to the number of dimensions of the action space in LAJIMA, e.g., $d=6$ for our Smart Grid use-case.
+Thus, the gradient of the reward was better in AJAR, but at the expense of an additional hyperparameter: the judgment function, which transforms a set of arguments into a reward, i.e., a scalar.
+
+The main idea to retain from this contribution is to leverage symbolic elements and methods to compute the rewards.
+We proposed BDI agents with logic rules, and argumentation graphs, as such symbolic methods, but perhaps others could be used as well.
+Many other forms of logics have been used within Machine Ethics, e.g., non-monotonic logic [@ganascia2007ethical], deontic logic [@arkoudas2005toward], abductive logic [@pereira2007modelling], and more generally, event calculus [@bonnemains2018embedded].
+Still, we argue that argumentation in particular offers interesting theoretical advantages, namely the attack relationship and the graph structure that allow both repairing reward "gaming", and an easy visualization of the judgment process.
+Our idea hopefully opens a new line of research with numerous perspectives, and an empirical and more exhaustive comparison of symbolic methods for judgment would be important.
+
+### Identifying and addressing dilemmas
+
+The third and final contribution focuses on the notion of dilemma, i.e., a situation in which multiple moral values are in conflict and cannot be satisfied at the same time.
+We want the learning agents to exhibit behaviours that take into account all defined ethical considerations, mainly represented by moral values, but when they cannot do so, how should they act?
+This is related to our objective O2.2, which states that "Behaviours should consider dilemmas situations, with conflicts between stakes".
+In the state of the art, we saw that numerous multi-objective reinforcement learning (MORL) approaches already exist, and several of them use preferences to select the best policy.
+However, their preferences are defined as a set of weights on the objectives: this is, in our opinion, an easily usable definition for machines, but quite hard for humans.
+It also assumes the existence of numeric tradeoffs between moral values, in other terms, the commensurability of moral values.
+Thus, we have proposed an alternative definition of "preferences", based on selecting an action.
+To avoid forcing the user to make a choice every time a dilemma is identified, which can become a burden as the number of dilemmas increase, the learning agents should learn to apply human preferences and automatically select the same actions in similar dilemmas.
+
+To solve these tasks, we extended the Q-(D)SOM algorithms to receive multi-objective rewards, and proposed a 3-steps approach.
+First, interesting actions are learned, so that, when a dilemma is identified, we can offer various interesting alternative actions to the user, and we know that we can compare them fairly, i.e., that they have similar uncertainty on their interests, or Q-Values.
+This is done by separating the learning into a bootstrap and a deployment phases, and creating exploration profiles to explore various sub-zones of the action space.
+
+The second step identifies dilemmas, by computing a Pareto Front of the various actions, i.e., retaining only the actions that are not dominated by another action.
+To determine whether the situation is a dilemma, we compare the remaining actions' interests to *ethical thresholds*, chosen by the human user, which are a set of thresholds, one for each moral value.
+Thus, different human users may have different expectations for the moral values.
+To simplify the definition of such ethical thresholds for lay users, we also learn the *theoretical* interests of actions, i.e., the interests they would have if they had received the maximum reward each time they were selected.
+The actions' interests are compared to the theoretical ones, such that the ratio yields a value between $0$ and $1$.
+If at least one of the proposed actions in the Pareto Front, for a given situation, is deemed acceptable, i.e., if all its interests are over their corresponding ethical threshold, the situation is not a dilemma, and the agent takes one of the acceptable actions.
+Otherwise, the situation is a dilemma, and we must resort to the human preferences.
+Thus, our proposed definition of a dilemma depends on the human user: the same situation can be considered as a dilemma for one human user, and not a dilemma for another user.
+We consider this an advantage.
+
+Finally, when a situation is an identified dilemma, we take an action based on the human preferences.
+We assume that human preferences depend on the situation: we may not always prefer the same moral values.
+To avoid asking the user too much, e.g., each time a dilemma is encountered, we introduce the notion of *contexts* to group similar dilemmas.
+Users define a context as a set of bounds, a lower and an upper, for each dimension of the observation space.
+Intuitively, it is similar to drawing a polytope in the observation space: a dilemma belongs to this context if the situation's observations are inside the polytope.
+When a context is created, the user also specifies which action should be taken; the same action is automatically selected by the artificial agent whenever an identified dilemma falls within the same context.
+
+An important aspect of our contribution is that we focus on giving control back to the human users.
+This is done through several mechanisms: the selection of ethical thresholds, the creation of contexts, and the definition of a *preference* as an action choice rather than a weights vector.
+The ethical thresholds allow controlling the system's sensibility, i.e., to which degree situations will be flagged as dilemmas.
+By setting the thresholds accordingly, the human user may choose the desired behaviour, e.g., always taking the action that maximizes, on average, the interests for all moral values, and thus acting in full autonomy, or, at the opposite extreme, recognizing all situations as dilemmas and thus always relying on the human preferences, or anything else in between.
+This is in line with the diversity targeted by objective O1.1.
+We note that our approach can therefore be used as a step towards a system that acts as an *ethical decision support*, i.e., a system that helps human users take better decisions by providing them with helpful information [@tolmeijer2020implementations ; @etzioni2017incorporating].
+
+## Limitations and perspectives {#conclusion-limitations}
+
+Our approach is firstly limited by its proof-of-concept nature.
+As such, it demonstrates the feasibility of our contributions, but is not (yet) suited for real-world deployment.
+The experiments happened in a simulated environment, and the moral values and rules we implemented were only defined by us, in our role of "almighty" designers, as mentioned in Section \@ref(positioning-ethicalmodel).
+We explained in the same section that, in our opinion, such design choices, which have ethical consequences, should be on the contrary discussed in a larger group, including users, stakeholders, moral philosophers, etc.
+The implementation would also require field experiments to validate that agents' decisions are considered correct by humans, for example through a Comparative Moral Turing Test (cMTT), as defined by @allen2000prolegomena.
+A cMTT is comparable to the Turing Test, except that it compares descriptions of actions performed by two agents, one artificial and one human, instead of discussions.
+The evaluator is then asked whether one of the two agents appears "less moral", in the sense that its actions are less aligned with moral values, than the other.
+If the machine is not identified as the "less moral" one significantly more often than the human, then it is deemed to have passed the test.
+In a similar vein, the simulation and the proposed interface could also be improved by focusing more on the Human-Computer Interaction (HCI) aspects.
+This would enhance the intelligibility of the system, which would make it easier to use and to accept.
+It is particularly important for our last contribution that focuses on putting users back in the loop and interacting with them to learn their preferences.
 
 Several interesting lines of research have been left out in this thesis, by lack of time and to focus on the contributions that have been presented in this manuscript.
+One of the perspectives could be to improve the explainability aspect of agents through another hybrid combination.
 For example, some works focus on the idea of causal models, or more generally on the notion of consequences, within the Machine Ethics community [@winfield2014towards].
 This echoes the so-called "model-based" reinforcement learning algorithms, which aim to first learn a model of the environment, and then leverage this model to select the best decisions, similarly to a planning algorithm.
 We imagine a step further down this line, and argue that such models could also be appealing for explainability purposes: the agent could then "explain", or at least provide elements of explanations, on why an action was taken, by presenting the learned model, the expected consequences of taking this action, and eventually a few counter-factuals, i.e., comparing the expected consequences of other actions.
 Furthermore, such a model could be leveraged not only as a tool to explain decisions *after taking them*, but even in a *proactive* manner: human users could explore consequences of their preferences in a simulated environment by querying the learned model.
-This would impact the co-construction between artificial agents and human users, with humans reflecting on their preferences.
+This would impact the co-construction of ethics between artificial agents and human users, with enriched opportunities for humans to reflect upon their ethical principles and preferences.
 The learned model could also improve the action selection interface when a new dilemma is identified: actions could be compared in terms of expected consequences, in addition to their interests, i.e., expected rewards, and parameters.
-In our architecture, this model could be especially fed by our symbolic elements, namely the judging agents.
+In our architecture, this model could especially draw on our symbolic elements, namely the judging agents.
 For example, a first idea could be to provide the argumentation graphs to the learning agents, as well as the individual activation of each argument in addition to the computed reward.
 Learning agents could thus learn which arguments are activated by an action in a situation.
-This does not represent a complete model of consequences in the world, as the arguments are themselves typically at a higher level ; still, it represents a first step.
-More generally, this idea could benefit from the Hybrid Neural-Symbolic research: our current approach leverages some sort of exogenous hybrid, as the symbolic and learning elements are in separated sets of agents.
+This does not represent a complete model of consequences in the world, as the arguments are themselves typically at a higher level; still, it represents a first step.
+More generally, proactive exploration of consequences could benefit from the Hybrid Neural-Symbolic research: our current approach leverages some sort of exogenous hybrid, as the symbolic and learning elements are in separated sets of agents.
 If the learning agents were imbued with a symbolic model of their world, they could learn this model through repeated interactions.
 
-Another perspective of improvement is that judging agents are somewhat limited in their agency.
+Another perspective of improvement is that judging agents are somewhat limited in their agency, in terms of reasoning abilities principally, but potentially interactions between them as well.
 By this, we mean that the process that determines a numeric reward from the symbolic judgment is described as a function, which basically counts the number of positive symbols versus the number of negative ones.
 Instead, this process could be replaced with a deliberate reasoning and decision-making to determine the reward based on the judgment symbols.
 For example, the judging agent could yield a reward that does not exactly correspond to the learning agent's merits at this specific time step, but which would help it learn better.
 Drawing on the idea of curriculum learning proposed by @bengio2009curriculum, the judging agents could choose to start with a simpler task, thus rewarding the learning agent positively even if all the moral values are not satisfied, and then gradually increasing the difficulty, requiring more moral values to be satisfied, or to a higher degree.
 Or, on the contrary, judging agents could give a lower reward than the learning agent normally deserves, because the judging agent believes the learning agent could have done better, based on previous performances.
-In the two previous examples, the described process would require to follow a long-time strategy, and to retain beliefs over the various learning agents to effectively adapt the rewards to their current condition with respect to the strategy.
-This exhibits proper agency, instead of a mere mathematical function ; in addition, it would improve the quality of the learning, and potentially reduce the designers' burden, as the curriculum learning for example would be done automatically by the judging agents.
+In the two previous examples, the described process would require to follow a long-term strategy, and to retain beliefs over the various learning agents to effectively adapt the rewards to their current condition with respect to the strategy.
+This exhibits proper agency, instead of a mere mathematical function; in addition, it would improve the quality of the learning, and potentially reduce the designers' burden, as the curriculum learning for example would be done automatically by the judging agents.
 Note that this idea is, again, linked with the notion of co-construction between judging and learning agents: indeed, the judges would have to retain information about the learning agents, and to adapt their strategy.
 For example, if learning agents do not manage to learn a given moral value, judging agents could switch their strategy, focusing on another one.
 
-Finally, an important limitation of our approach is that we assume we can implement moral values as computer instructions, in this case the judgment process more specifically.
+Finally, an important limitation of our approach is that we assume we can implement (philosophical) moral values as computer instructions, in this case the judgment process more specifically.
 In other words, this limitation means that we expect to have a formal definition, translatable in a given programming language, or "computable" in a large sense.
 However, we have no guarantee for this assumption.
 For example, how can we define *human dignity*^[Many thanks to one of the researchers with whom I discussed at the Arqus conference for this specific example!]?
+Currently, we consider that moral values are symbols, which are linked to actions that may support or defeat them, as defined by the moral rules.
+However, this might be a reduction of the original meaning of moral values, in moral philosophy.
 This limitation can be seen, in fact, as the "ultimate" question of Machine Ethics: will we be able to implement moral reasoning in a computer system?
 An advantage, perhaps, of our approach, is that we do not require to code *how* to act, but rather to specify what is praiseworthy, or on contrary punishable.
 This means that, even if we cannot define, e.g., human dignity entirely, we may still provide the few elements that we can think of and formalize.

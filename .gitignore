@@ -19,7 +19,11 @@ thesis.aux
 thesis.bcf
 thesis.out
 thesis.Rmd
+thesis.tex
+tikz*.log
 
 # JetBrains
 .idea/**
 
+# Data
+data/contribution*/remote/**

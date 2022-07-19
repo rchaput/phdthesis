@@ -1,0 +1,130 @@
+<!--
+This file contains the appendices relative to the 1st contribution only
+(learning algorithms).
+-->
+
+# Learning algorithms' hyperparameters
+
+The following tables show a comparison of various hyperparameters for each of the learning algorithms: QSOM, QDSOM, DDPG, and MADDPG.
+For each of them, numerous combinations of hyperparameters were tried multiple times, and the *score* of each run was recorded.
+We recall that, in this context, *score* is defined as the average global reward over the time steps, where the global reward is the reward for all agents, e.g., the equity in the environment.
+The mean score is computed for all runs using the same combination of hyperparameters.
+Then, for each hyperparameter, we compute the maximum of the mean scores attained for each value of the parameter.
+
+This method simplifies the interaction between hyperparameters, as we take the maximum.
+For example, a value $v_1$ of a hyperparameter $h_1$ could yield most of the time a low score, except when associated when used in conjunction with a value $v_2$ of another hyperparameter $h_2$.
+The maximum will retain only this second case, and ignore the fact that, for any other combination of hyperparameters, setting $h_1 = v_1$ yields a low score.
+This still represents valuable information, as we are often more interested in finding the best hyperparameters, which yield the maximum possible score.
+
+```{r annex-contrib1-hyperparams-functions}
+# Helper function to read the CSV and automatically compute the mean scores.
+read_hparams <- function (file, fields) {
+  read.csv(file) %>%
+    as_tibble() %>%
+    select(all_of(c(fields, "run", "score"))) %>%
+    group_by(across(all_of(fields))) %>%
+    summarize(mean_score = mean(score), .groups = "drop")
+}
+# We define a custom plotting function to simplify creating the tables later.
+# This function takes a dataset (a Tibble), and a column name.
+# We take the best score for each value of this column, and plot the relation
+# between the column's values (X-axis) and the best score (Y-axis).
+my_gg <- function (data, name) {
+  data <- data %>%
+    group_by(across(all_of(name))) %>%
+    summarize(best_score = max(mean_score), .groups = "drop")
+  ggplot(data, aes_string(x = name, y = "best_score")) +
+    geom_line() +
+    geom_point()
+}
+# We also define a function to produce the summary table from the hyperparameters
+# and their plots.
+hparams_table <- function (data) {
+  data %>%
+    flextable() %>%
+    mk_par(j = "gg", value = as_paragraph(
+      gg_chunk(value = gg, width = 4, height = 1)
+    )) %>%
+    set_header_labels(gg = "Best score per value") %>%
+    # align(align = "center", j = 1, part = "header") %>%
+    autofit() %>%
+    theme_booktabs()
+}
+```
+
+```{r annex-contrib1-hyperparams-qsom}
+#| tab.cap: >
+#|    Comparison of hyperparameters' values for the Q-SOM algorithm.
+fields <- c("input_som_lr", "action_som_lr", "q_lr", "q_gamma", "perturbation", "action_noise", "q_tau")
+df <- read_hparams("data/contribution1/hyperparameters_qsom1.csv", fields)
+z <- tribble(
+  ~Hyperparameter, ~gg,
+  "input_som_lr", my_gg(df, "input_som_lr"),
+  "action_som_lr", my_gg(df, "action_som_lr"),
+  "q_lr", my_gg(df, "q_lr"),
+  "q_gamma", my_gg(df, "q_gamma"),
+  # `perturbation` is not a continuous but discrete variable, plot is not appropriate
+  # "perturbation", list(my_gg(df2, "perturbation")),
+  "action_noise", my_gg(df, "action_noise"),
+  "q_tau", my_gg(df, "q_tau")
+)
+hparams_table(z)
+```
+
+```{r annex-contrib1-hyperparams-qdsom}
+#| tab.cap: >
+#|    Comparison of hyperparameters' values for the Q-DSOM algorithm.
+fields <- c("input_som_lr", "input_som_elasticity", "action_som_lr", "action_som_elasticity", "q_lr", "q_gamma", "perturbation", "action_noise", "q_tau")
+df <- read_hparams("data/contribution1/hyperparameters_qdsom1.csv", fields)
+z <- tribble(
+  ~Hyperparameter, ~gg,
+  "input_som_lr", my_gg(df, "input_som_lr"),
+  "input_som_elasticity", my_gg(df, "input_som_elasticity"),
+  "action_som_lr", my_gg(df, "action_som_lr"),
+  "action_som_elasticity", my_gg(df, "action_som_elasticity"),
+  "q_lr", my_gg(df, "q_lr"),
+  "q_gamma", my_gg(df, "q_gamma"),
+  # `perturbation` is not a continuous but discrete variable, plot is not appropriate
+  # "perturbation", list(my_gg(df2, "perturbation")),
+  "action_noise", my_gg(df, "action_noise"),
+  "q_tau", my_gg(df, "q_tau")
+)
+hparams_table(z)
+```
+
+```{r annex-contrib1-hyperparams-ddpg}
+#| tab.cap: >
+#|    Comparison of hyperparameters' values for the DDPG algorithm.
+fields <- c("ddpg_batch_size", "ddpg_lr", "ddpg_gamma", "ddpg_tau", "perturbation", "action_noise")
+df <- read_hparams("data/contribution1/hyperparameters_ddpg.csv", fields)
+z <- tribble(
+  ~Hyperparameter, ~gg,
+  "ddpg_batch_size", my_gg(df, "ddpg_batch_size"),
+  "ddpg_lr", my_gg(df, "ddpg_lr"),
+  "ddpg_gamma", my_gg(df, "ddpg_gamma"),
+  "ddpg_tau", my_gg(df, "ddpg_tau"),
+  # `perturbation` is not a continuous but discrete variable, plot is not appropriate
+  # "perturbation", list(my_gg(df2, "perturbation")),
+  "action_noise", my_gg(df, "action_noise")
+)
+hparams_table(z)
+```
+
+```{r annex-contrib1-hyperparams-maddpg}
+#| tab.cap: >
+#|    Comparison of hyperparameters' values for the DDPG algorithm.
+fields <- c("maddpg_lr_actor", "maddpg_lr_critic", "maddpg_tau", "maddpg_gamma", "maddpg_batch_size", "maddpg_buffer_size", "maddpg_noise", "maddpg_epsilon")
+df <- read_hparams("data/contribution1/hyperparameters_maddpg.csv", fields)
+z <- tribble(
+  ~Hyperparameter, ~gg,
+  "maddpg_lr_actor", my_gg(df, "maddpg_lr_actor"),
+  "maddpg_lr_critic", my_gg(df, "maddpg_lr_critic"),
+  "maddpg_tau", my_gg(df, "maddpg_tau"),
+  "maddpg_gamma", my_gg(df, "maddpg_gamma"),
+  "maddpg_batch_size", my_gg(df, "maddpg_batch_size"),
+  "maddpg_buffer_size", my_gg(df, "maddpg_buffer_size"),
+  "maddpg_noise", my_gg(df, "maddpg_noise"),
+  "maddpg_epsilon", my_gg(df, "maddpg_epsilon")
+)
+hparams_table(z)
+```

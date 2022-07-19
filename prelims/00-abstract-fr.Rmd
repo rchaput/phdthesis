@@ -1,4 +1,4 @@
-Les précédentes décennies ont vu un immense progrès des techniques d'Intelligence Artificielles, dans de nombreux domaines, allant jusqu'à atteindre, voire dépasser, les performances humaines dans certains d'entre eux.
+Les précédentes décennies ont vu un immense progrès des techniques d'Intelligence Artificielle, dans de nombreux domaines, allant jusqu'à atteindre, voire dépasser, les performances humaines dans certains d'entre eux.
 Cela a mené des systèmes informatiques équipés de telles techniques d'IA à quitter les environnements constraints et artificiels des laboratoires, pour être déployés dans notre monde et notre société humaine, afin de résoudre des tâches ayant un impact bien réel.
 Ces systèmes ont une influence plus ou moins directe sur des humains, que ce soit leur vie pour les cas les plus extrêmes, ou de manière plus subtile, mais plus ubiquitaire, leur quotidien.
 Des questions se posent ainsi quant à leur capacité d'agir en accord avec les valeurs (morales) qui nous semblent importantes.
@@ -28,12 +28,12 @@ Nous nous inspirons des techniques d'apprentissage multi-objectif afin de propos
 Nous évaluons ces contributions sur un cas d'application que nous proposons, définissons et implémentons : la répartition d'énergie au sein d'une *smart grid*.
 
 **Mots-clés**:
-Éthique computationnelle ;
-Agents moraux artificiels ;
-Systèmes multi-agent ;
-Apprentissage par renforcement multi-agent ;
-Apprentissage par renforcement multi-objectif ;
-Jugement éthique ;
-Apprentissage hybride neuro-symbolique ;
-Dilemmes moraux ;
+Éthique computationnelle\ ;
+Agents moraux artificiels\ ;
+Systèmes multi-agent\ ;
+Apprentissage par renforcement multi-agent\ ;
+Apprentissage par renforcement multi-objectif\ ;
+Jugement éthique\ ;
+Apprentissage hybride neuro-symbolique\ ;
+Dilemmes moraux\ ;
 Préférences humaines

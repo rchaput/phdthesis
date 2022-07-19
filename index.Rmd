@@ -1,7 +1,7 @@
 ---
 title: 'Learning behaviours aligned with moral values in a multi-agent system: guiding reinforcement learning with symbolic judgments'
 author: 'Rémy Chaput'
-date: 'Month 2022'
+date: 'dd/mm/2022'
 
 # Thesis information
 title_fr: "Apprendre des comportements alignés sur des valeurs morales dans un système multi-agent: guider l'apprentissage par renforcement avec des jugements symboliques"
@@ -100,6 +100,7 @@ helper_install_pkg("knitr")
 helper_install_pkg("bookdown")
 helper_install_pkg("tibble")
 helper_install_pkg("dplyr")
+helper_install_pkg("tidyr")
 # For the algorithms engine, converting svg to pdf
 helper_install_pkg("magick")
 helper_install_pkg("pdftools")
@@ -108,6 +109,8 @@ helper_install_pkg("kableExtra")
 helper_install_pkg("flextable")
 # For Python engine
 helper_install_pkg("reticulate")
+# For plots
+helper_install_pkg("ggplot2")
 
 helper_install_github("thesisdown", "ismayc/thesisdown")
 helper_install_github("knitrdrawio", "rchaput/knitrdrawio")
@@ -116,14 +119,33 @@ helper_install_github("acronymsdown", "rchaput/acronymsdown")
 ```
 
 ```{r setup, include=FALSE}
-# Avoid printing the source code of chunks
-knitr::opts_chunk$set(echo = FALSE)
+# Avoid printing the source code of chunks, messages, and warnings
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+# Change LaTeX settings for float behaviour, i.e., placement of figures.
+knitr::opts_chunk$set(fig.pos = "htbp")
 # Set how wide the R output will go
 options(width = 70)
 # Setup Python engine
 reticulate::use_virtualenv(file.path(getwd(), ".venv"))
 # Ignore fonts in flextable (needs to use xelatex otherwise)
 flextable::set_flextable_defaults(fonts_ignore = TRUE)
+```
+
+```{python setup-python}
+import seaborn as sns
+palette = sns.color_palette()
+# We set here the colors for our different models, to assure coherence
+# throughout the manuscript.
+models_colors = {
+  'QSOM': palette[0],
+  'Q-SOM-1': palette[0],
+  'Q-SOM': palette[0],
+  'QDSOM': palette[1],
+  'Q-DSOM': palette[1],
+  'Q-DSOM-1': palette[1],
+  'DDPG': palette[2],
+  'MADDPG': palette[3],
+}
 ```
 
 ```{r setup-algorithm-engine, include=FALSE}
@@ -149,7 +171,7 @@ algorithm.engine <- function (options) {
   \usepackage{amsfonts}
   \usepackage{physics}  % For the `norm` command
   \usepackage{xcolor}  % For colored comments
-  \DeclareMathOperator*{\argmin}{argmin}
+  \input{maths.tex}  % Custom math definitions
   %% EXTRA_PREAMBLE_CODE %%
   \usepackage[
   %% ALGO_CLASSOPTION %%

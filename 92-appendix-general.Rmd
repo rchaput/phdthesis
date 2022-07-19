@@ -1,0 +1,98 @@
+<!--
+This file contains "general" appendices, relative to the whole manuscript.
+- List of mathematical notations
+-->
+
+# Mathematical notations and symbols
+
+We list here both classic mathematical notations, e.g., $\RR$, and some symbols specific to our work, e.g., $s$.
+
+$\RR$ : the "reals", or set of all real numbers.
+
+$t$ : a time step.
+
+$\length{X}$ : depending on the context, either the cardinality of a set $X$, or the absolute value of a real $X$.
+
+$\LAgts$ : the set of learning agents.
+
+$\ActionSpace_l$ : the action space of a learning agent $l$, typically $\mathbb{A}_l \subseteq \mathbb{R}^d$.
+
+$d$ : number of dimensions of the agent's action space.
+
+$\mathbf{a}$ : an action in the action space, i.e., a vector of $d$ dimensions.
+
+$\ObsSpace_l$ : the observation space of a learning agent $l$, typically $\mathbb{O}_l \subseteq \RR^g$.
+
+$g$ : number of dimensions of the agent's observation space.
+
+$\mathbf{o}$ : observations in the observation space, i.e., a vector of $g$ dimensions.
+
+$\gamma$ : Discount factor.
+
+$\mathcal{U}$ : set of neurons in the State-(D)SOM, i.e., the neurons that learn the observation space.
+
+$\mathcal{W}$ : set of neurons in the Action-(D)SOM, i.e., the neurons that learn the action space.
+
+$\mathbf{U_i}$ : prototype vector associated to neuron $i$ of the State-(D)SOM.
+
+$\mathbf{W_j}$ : prototype vector associated to neuron $j$ of the Action-(D)SOM.
+
+$\pos_U(i)$ : position of neuron $i$ in the State-(D)SOM.
+
+$\pos_W(j)$ : position of neuron $j$ in the Action-(D)SOM.
+
+$\psi_U$ : neighborhood of the State-(D)SOM.
+
+$\psi_W$ : neighborhood of the Action-(D)SOM.
+
+$\Q$ : the Q-Function, or Q-Table, which stores the interest for every state-action pair.
+
+$s$ : usually, a discrete state identifier.
+
+$\JAgts$ : the set of judging agents.
+
+$\BeliefSpace$ : the space of all possible beliefs about a current situation.
+
+$\Beliefs$ : a set of beliefs about a current situation, with $\Beliefs \in \BeliefSpace$.
+
+$\ValSpace$ : the set of possible moral valuations, $\ValSpace = \left\{ \moral, \immoral, \neutral \right\}$.
+
+$\ME_j$ : the Moral Evaluation function of a judging agent $j$, $\ME_j : \BeliefSpace \times \RR \rightarrow \ValSpace$.
+
+$\Judgment_j$ : the Judgment function of a judging agent $j$, $\Judgment : \LAgts \rightarrow \ValSpace^d$.
+
+$\Feedback$ : the Feedback function.
+
+$\Args$ or $AF_{[\Args]}$ : a set of arguments in an Argumentation Framework for Judging a Decision (AFJD).
+
+$\Att$ or $AF_{[\Att]}$ : a binary attack relationship in an AFJD.
+
+$\Fp$ or $AF_{[\Fp]}$ : the set of *pros* arguments in an AFJD.
+
+$\Fc$ or $AF_{[\Fc]}$ : the set of *cons* arguments in an AFJD.
+
+$\Jj$ : the Judgment function of a judging agent $j$, $\Jj : \mathcal{P}(AF_j) \rightarrow \RR$.
+
+$\gagr$ : the Aggregation function, $\gagr : \RR^{\length{\JAgts}} \to \RR$.
+
+$\grd$ : the grounded extension of an AFJD.
+
+$\gPareto$ : the Pareto-dominance operator : $\mathbf{x} \gPareto \mathbf{y} \Leftrightarrow \left( \forall i : x_i \geq y_i \right) \text{and} \left( \exists j : x_j > y_j \right)$.
+
+$\Profiles$ : the set of all exploration profiles.
+
+$p$ an exploration profile $\in \Profiles$.
+
+$\DiscreteStates$ : the set of discrete state identifiers.
+
+$\StateFn$ : function that returns a state identifier from an observations vector, $\StateFn : \ObsSpace \rightarrow \DiscreteStates$.
+
+$\DiscreteActions$ : the set of discrete action identifiers.
+
+$\ActionFn$ : function that returns action parameters from a discrete action identifier, $\ActionFn : \DiscreteActions \rightarrow \ActionSpace_l$.
+
+$\PFFn$ : function that returns a Pareto Front (PF) from a set of possible actions.
+
+$\ThresholdSpace$ : the space of possible ethical thresholds.
+
+$\Contexts$ : the set of all learned contexts.

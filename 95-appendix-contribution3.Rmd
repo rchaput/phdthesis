@@ -1,0 +1,145 @@
+<!--
+This file contains the appendices relative to the 3rd contribution only
+(dilemmas).
+-->
+
+# Unique contexts and occurrences
+
+We have described in Section \@ref(dilemmas-preferences) a "naive" definition for *context*, which is based on the exploration profiles and their state discretization.
+Let us recall that each profile has its own State-(D)SOM that is used to discretize a continuous observation vector into a discrete state identifier.
+The "naive" definition simply takes the list of state identifiers, i.e., the state identifier determined by each exploration profile, as the context.
+For example, such a context could be $[35, 23, 43, 132, 12]$, meaning that the first profile has discretized the observations as state $35$, the second profile as $23$, etc.
+However, we also mentioned that this naive method yielded too many contexts: we expand this here and detail the number of times each unique context appeared.
+
+```{python appendix-dilemmas-nb-naive-contexts, out.width="75%"}
+#| fig.cap: >
+#|   Count and proportion (Y axes) of contexts appearing at least X times,
+#|   using the "naive" definition, i.e., taking the list of discretized states
+#|   by exploration profiles as the context.
+import pandas as pd
+import seaborn as sns
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+# df = the context identified at each step of the simulation
+df = pd.read_csv('data/contribution3/example_naive_contexts.csv')
+# df_unique = the number of times a context was identified (= number of steps)
+df_unique = df['Context'].value_counts()
+# We exceptionally want to show the X ticks because not all labels are shown
+# (log scale => some ticks too close to others => labels would overlap)
+with mpl.rc_context({'xtick.bottom': True}):
+    # Creating a first figure/axes
+    fig, ax1 = plt.subplots()
+    # Create a second axes with same Xaxis
+    ax2 = ax1.twinx()
+
+    # Plot the 'proportion' on ax1
+    sns.ecdfplot(data=df_unique,
+                 log_scale=True,
+                 complementary=True,
+                 stat='proportion',
+                 ax=ax1)
+
+    # Plot the 'count' on ax2
+    sns.ecdfplot(data=df_unique,
+                 log_scale=True,
+                 complementary=True,
+                 stat='count',
+                 ax=ax2)
+
+    # Set the ticks
+    # Yaxis
+    # ticks_y1 = the proportion of contexts (0%, 10%, 20%, ...)
+    ticks_y1 = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 1.0]
+    ax1.set_yticks(ticks_y1)
+    ax1.set_yticklabels(ticks_y1)
+    ax1.set_ylabel('Proportion of contexts')
+    # ticks_y2 = the count of contexts corresponding to proportions (N*0%, N*10%, ...)
+    ticks_y2 = [int(len(df_unique) * i) for i in ticks_y1]
+    ax2.set_yticks(ticks_y2)
+    ax2.set_yticklabels(ticks_y2)
+    ax2.set_ylabel('Count of contexts')
+    # Xaxis
+    ticks = [1, 2, 3, 4, 5, 10, 20, 30, 40, 50, 100, 200, 300, 400]
+    ax1.set_xticks(ticks)
+    ax1.set_xticklabels(ticks, rotation=90)
+    ax1.set_xlabel('Number of occurrences')
+    plt.tight_layout()
+    plt.show()
+
+# Pre-compute the mean so that we can use it in the document through R
+naive_mean = round(df_unique.mean(), 2)
+```
+
+Figure \@ref(fig:appendix-dilemmas-nb-naive-contexts) shows the proportion and count (respectively on the left-side Y axis and right-side Y axis) of contexts that appeared at last X times in the simulation.
+The first information we can grasp for this figure is the total number of unique contexts, which is $1,826$.
+This is an improvement, when compared to the $10,000$ time steps of the simulation, yet it is too much for a human user: it means we have to ask $1,826$ times during the simulation.
+The second information is that most of the contexts appear very rarely: 55% of contexts have a single occurrence.
+About 30% of contexts appear more than $3$ times, 10% appear more than $10$ times, and so on.
+Although one context managed to occur about $400$ times, the vast majority of contexts are rare.
+This means that the human user would spend time setting preferences, only for a small effect.
+The mean number of occurrences was around `r py$naive_mean`.
+
+```{python appendix-dilemmas-nb-human-contexts, out.width="75%"}
+#| fig.cap: >
+#|   Count and proportion (Y axes) of contexts appearing at least X times,
+#|   using the "human" definition, i.e., asking the user to set context bounds.
+import pandas as pd
+import seaborn as sns
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+# df = the creation of contexts, and their number of recognized situations
+df = pd.read_csv('data/contribution3/dilemmas_human_nb_remaining_dilemmas.csv')
+# df_unique = the number of times a context was identified (= number of steps)
+df_unique = df['RecognizedSituations']
+# We exceptionally want to show the X ticks because not all labels are shown
+# (log scale => some ticks too close to others => labels would overlap)
+with mpl.rc_context({'xtick.bottom': True}):
+    # Creating a first figure/axes
+    fig, ax1 = plt.subplots()
+    # Create a second axes with same Xaxis
+    ax2 = ax1.twinx()
+
+    # Plot the 'proportion' on ax1
+    sns.ecdfplot(data=df_unique,
+                 log_scale=True,
+                 complementary=True,
+                 stat='proportion',
+                 ax=ax1)
+
+    # Plot the 'count' on ax2
+    sns.ecdfplot(data=df_unique,
+                 log_scale=True,
+                 complementary=True,
+                 stat='count',
+                 ax=ax2)
+
+    # Set the ticks
+    # Yaxis
+    # ticks_y1 = the proportion of contexts (0%, 10%, 20%, ...)
+    ticks_y1 = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 1.0]
+    ax1.set_yticks(ticks_y1)
+    ax1.set_yticklabels(ticks_y1)
+    ax1.set_ylabel('Proportion of contexts')
+    # ticks_y2 = the count of contexts corresponding to proportions (N*0%, N*10%, ...)
+    ticks_y2 = [int(len(df_unique) * i) for i in ticks_y1]
+    ax2.set_yticks(ticks_y2)
+    ax2.set_yticklabels(ticks_y2)
+    ax2.set_ylabel('Count of contexts')
+    # Xaxis
+    ticks = [1, 10, 100, 200, 300, 400, 500, 1000, 2000, 3000]
+    ax1.set_xticks(ticks)
+    ax1.set_xticklabels(ticks, rotation=90)
+    ax1.set_xlabel('Number of occurrences')
+    plt.tight_layout()
+    plt.show()
+
+# Pre-compute the mean so that we can use it in the document through R
+human_mean = round(df_unique.mean(), 2)
+```
+
+On contrary, the human-based definition, which relies on the human user to define the bounds of a context when a new context is necessary, has managed to create less unique contexts.
+This is highlighted by Figure \@ref(fig:appendix-dilemmas-nb-human-contexts), which shows a plot with a similar structure as the previous one.
+However, in this case, we have few contexts: only $42$ unique contexts, which is a huge improvement over the $1,826$ naive ones.
+Also, many contexts appeared several times: more than 80% of them appeared at least $10$ times, about 20% appeared more than $200$ times, and approximately 10% appeared more than $700$ times.
+The mean number of occurrences, with this definition, was `r py$human_mean`.
+This very high mean gives us another information: contrary to the previous case, where the majority of time steps were associated to various contexts that only appeared once or twice, with this new definition, the majority of steps are captured by only few contexts (less than 4) that appear thousands of times.
