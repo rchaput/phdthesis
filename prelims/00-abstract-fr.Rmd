@@ -1,5 +1,5 @@
 Les précédentes décennies ont vu un immense progrès des techniques d'Intelligence Artificielle, dans de nombreux domaines, allant jusqu'à atteindre, voire dépasser, les performances humaines dans certains d'entre eux.
-Cela a mené des systèmes informatiques équipés de telles techniques d'IA à quitter les environnements constraints et artificiels des laboratoires, pour être déployés dans notre monde et notre société humaine, afin de résoudre des tâches ayant un impact bien réel.
+Cela a mené des systèmes informatiques équipés de telles techniques d'IA à quitter les environnements contraints et artificiels des laboratoires, pour être déployés dans notre monde et notre société humaine, afin de résoudre des tâches ayant un impact bien réel.
 Ces systèmes ont une influence plus ou moins directe sur des humains, que ce soit leur vie pour les cas les plus extrêmes, ou de manière plus subtile, mais plus ubiquitaire, leur quotidien.
 Des questions se posent ainsi quant à leur capacité d'agir en accord avec les valeurs (morales) qui nous semblent importantes.
 

@@ -6,7 +6,7 @@ date: 'dd/mm/2022'
 # Thesis information
 title_fr: "Apprendre des comportements alignés sur des valeurs morales dans un système multi-agent: guider l'apprentissage par renforcement avec des jugements symboliques"
 nnt: 'xx.xx.xxx'
-institution: "l'Université Claude Bernard Lyon 1"
+institution: "L'UNIVERSITÉ CLAUDE BERNARD LYON 1"
 department: 'Informatique'
 ednumber: '512'
 edname: 'InfoMaths'
