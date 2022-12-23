@@ -3,9 +3,11 @@
 .Rhistory
 .RData
 .Ruserdata
+.Rprofile
 
 # Python
 .venv/
+**/__pycache__/
 
 # Mac OS X files
 **/.DS_Store
@@ -15,6 +17,7 @@ _book/**
 _bookdown_files/**
 thesis.log
 thesis.lol
+thesis.loa
 thesis.aux
 thesis.bcf
 thesis.out

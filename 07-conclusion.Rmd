@@ -168,7 +168,7 @@ This is done through several mechanisms: the selection of ethical thresholds, th
 The ethical thresholds allow controlling the system's sensibility, i.e., to which degree situations will be flagged as dilemmas.
 By setting the thresholds accordingly, the human user may choose the desired behaviour, e.g., always taking the action that maximizes, on average, the interests for all moral values, and thus acting in full autonomy, or, at the opposite extreme, recognizing all situations as dilemmas and thus always relying on the human preferences, or anything else in between.
 This is in line with the diversity targeted by objective O1.1.
-We note that our approach can therefore be used as a step towards a system that acts as an *ethical decision support*, i.e., a system that helps human users take better decisions by providing them with helpful information [@tolmeijer2020implementations ; @etzioni2017incorporating].
+We note that our approach can therefore be used as a step towards a system that acts as an *ethical decision support*, i.e., a system that helps human users make better decisions by providing them with helpful information [@tolmeijer2020implementations ; @etzioni2017incorporating].
 
 ## Limitations and perspectives {#conclusion-limitations}
 
@@ -188,7 +188,7 @@ Several interesting lines of research have been left out in this thesis, by lack
 One of the perspectives could be to improve the explainability aspect of agents through another hybrid combination.
 For example, some works focus on the idea of causal models, or more generally on the notion of consequences, within the Machine Ethics community [@winfield2014towards].
 This echoes the so-called "model-based" reinforcement learning algorithms, which aim to first learn a model of the environment, and then leverage this model to select the best decisions, similarly to a planning algorithm.
-We imagine a step further down this line, and argue that such models could also be appealing for explainability purposes: the agent could then "explain", or at least provide elements of explanations, on why an action was taken, by presenting the learned model, the expected consequences of taking this action, and eventually a few counter-factuals, i.e., comparing the expected consequences of other actions.
+We imagine a step further down this line, and argue that such models could also be appealing for explainability purposes: the agent could then "explain", or at least provide elements of explanations, on why an action was taken, by presenting the learned model, the expected consequences of taking this action, and eventually a few counterfactuals, i.e., comparing the expected consequences of other actions.
 Furthermore, such a model could be leveraged not only as a tool to explain decisions *after taking them*, but even in a *proactive* manner: human users could explore consequences of their preferences in a simulated environment by querying the learned model.
 This would impact the co-construction of ethics between artificial agents and human users, with enriched opportunities for humans to reflect upon their ethical principles and preferences.
 The learned model could also improve the action selection interface when a new dilemma is identified: actions could be compared in terms of expected consequences, in addition to their interests, i.e., expected rewards, and parameters.
@@ -210,7 +210,7 @@ This exhibits proper agency, instead of a mere mathematical function; in additio
 Note that this idea is, again, linked with the notion of co-construction between judging and learning agents: indeed, the judges would have to retain information about the learning agents, and to adapt their strategy.
 For example, if learning agents do not manage to learn a given moral value, judging agents could switch their strategy, focusing on another one.
 
-Finally, an important limitation of our approach is that we assume we can implement (philosophical) moral values as computer instructions, in this case the judgment process more specifically.
+An important limitation of our approach is that we assume we can implement (philosophical) moral values as computer instructions, in this case the judgment process more specifically.
 In other words, this limitation means that we expect to have a formal definition, translatable in a given programming language, or "computable" in a large sense.
 However, we have no guarantee for this assumption.
 For example, how can we define *human dignity*^[Many thanks to one of the researchers with whom I discussed at the Arqus conference for this specific example!]?
@@ -221,3 +221,18 @@ An advantage, perhaps, of our approach, is that we do not require to code *how* 
 This means that, even if we cannot define, e.g., human dignity entirely, we may still provide the few elements that we can think of and formalize.
 Thus, the agent's resulting behaviour will not exactly exhibit the human dignity value, but some aspects of it, which is better than nothing.
 The agent will thus exhibit a behaviour with ethical considerations, and as a consequence have a more beneficial impact on our lives and society.
+
+Finally, we have evaluated our contributions on a Smart Grid case, which we described as an example, and mentioned that the proposed approaches were generic.
+We now detail the necessary steps to adapt them to another domain; these steps are grouped by contribution to make it clearer.
+Concerning the reinforcement learning algorithm, the first important step is to have an environment that follows the RL framework: sending observations to agents, querying actions from them, executing actions, computing rewards.
+As part of this step, a significant effort must be applied to the choice and design of the observations (also called "features" in the RL literature): some will provide better results, e.g., by combining several low-level features together.
+The presented algorithms, Q-SOM and Q-DSOM, are themselves applicable as-is to any environment that follows this RL framework, as they can be parametrized to any size of input (observations) and output (actions) vectors.
+However, a second step of finding the best hyperparameters will surely be necessary to optimize the agents' behaviours to this new application use-case.
+Concerning the symbolic judgments for reward functions, more work will be required, as we only provide a framework, be it through Beliefs-Desires-Intentions (BDI) agents or argumentation-based agents.
+Designers will have to implement the desired reward function using one of these frameworks: this requires wondering which moral values should be focused, what metrics are used to support them, etc.
+Note that, whereas argumentation can be easily plugged with the learning algorithms, as they both are implemented in Python, BDI agents in JaCaMo are implemented in Java and require an additional technical work to communicate with Python, e.g., through a Web server that will transfer observations and actions back-and-forth between Python and Java.
+Concerning the last part, dilemmas and human preferences, the general idea and algorithms we propose are generic, as they do not explicitly rely on the domain's specificities, except for the interface that is used to ask the human user.
+This interface has to present the current situation, e.g., in terms of observations, and the proposed actions' interests and parameters.
+These elements are specific to the chosen use-case, for example in Smart Grid the current hour is an important part of observations; actions' parameters concern quantities of energy to transfer, etc.
+An appropriate interface must be built, specifically for the new domain.
+This requires both a technical work and a bit of reflection about the UX, so that the interface can be usable to lay users.

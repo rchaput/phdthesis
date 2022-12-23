@@ -59,6 +59,9 @@ This extension follows 3 steps, each one addressing a different need.
 3. The third and final step is to learn the user preferences, based on the interesting actions from step 1, in the dilemmas identified at step 2. We refine the vague notion of "context" mentioned earlier, and describe what is a user preference, and how we can map them to the different contexts so that agents learn to settle dilemmas using the correct, expected preferences. Dilemmas in the same context are settled in the same way, so as to reduce the amount of required interactions with the human users.
 
 Figure \@ref(fig:dilemmas-architecture) represents these 3 steps, and details the conceptual architecture proposed in Figure \@ref(fig:conceptual-architecture).
+Learning agents, on the right side of the figure, still receive observations from the environment, and output actions to the environment.
+However, their decision and learning algorithms now integrate additional data structures and processes, and learning agents are associated to a human user.
+
 The *exploration profiles* focus on the 1st step, learning interesting actions, based on the observations of the current situation, and the multiple rewards received by the learning agent.
 Note that, instead of aggregating them and receiving a single scalar $\in \RR$, as in the previous chapter, we now send directly all judgments from judging agents, and thus the learning agents obtain multi-objective rewards $\in \RR^m$, where $m$ is the number of objectives.
 In our case, objectives correspond to the respect of moral values, and we thus equate "moral values" with "objectives" in this chapter.
@@ -183,7 +186,6 @@ We propose 5 different exploration profiles: 4 of them each focus on a different
 The generalist exploration profile simply is set to $[\frac{1}{m}, \frac{1}{m}, \frac{1}{m}, \frac{1}{m}]$, where $m = 4$ is the number of moral values.
 Thus, this profile considers all moral values equivalently.
 For the other, specialized profiles, we propose to use a weight of $0.9$ for their specific moral value, and a weight of $\frac{0.1}{m-1} = 0.033$ for all other objectives.
-Using a non-0 weight means that we do not completely ignore these other moral values.
 For example, let us consider the previously learned interests $\Q(s,j) = [0.8, 0.3, 0.3, 0.3]$, and the received reward for the perturbed action $\mathbf{r} = [0.8, 0.4, 0.4, 0.4]$.
 To simplify, let us ignore the $\max_{j'}$ part of the equation, and instead focus on comparing the reward with the previously learned interests.
 The perturbed action thus did not manage to improve the interest on the first moral value, but did improve on the other objectives.
@@ -192,7 +194,7 @@ We use a very low weight on these other objectives, so that an eventual decrease
 Other exploration profiles, such as $[0.75, 0.25, 0, 0]$ could also be used, and we detail in Section \@ref(dilemmas-discussion) perspectives on this topic.
 :::
 
-Note that, in addition, the Bellman equation must be adapted as well:
+Note that, in addition, the Bellman equation must be adapted as well, where $k$ is used to iterate on the various moral values:
 
 \begin{equation}
   \forall k \in [[1,m]] : \Q_{t+1}(s_t,a_t,k) \leftarrow \alpha \left[r_{t,k} + \gamma \max_{a',\rho} \Q_{t}(s_{t+1},a',k) \right] + (1 - \alpha)\Q_{t}(s_t,a_t,k)
@@ -217,7 +219,7 @@ We pose a few definitions to formalize the dilemma identification process.
 To better explain our reasoning behind the algorithm we propose, we start from a naïve application of an existing definition of dilemma, and point out the problems that arise and how we overcame them.
 Let us recall that a situation is described by a vector of observations $\mathbf{o} \in \ObsSpace$, according to the DecPOMDP framework described in Definition \@ref(def:decpomdp).
 
-We start by adapting a definition of *dilemma* proposed by Bonnemains [@bonnemains2019formal]:
+We start by adapting a definition of *dilemma* proposed by @bonnemains2019formal:
 
 > A situation is considered as a dilemma if there is at least two possible decisions, and every decision is unsatisfactory either by nature or by the consequences.
 
@@ -249,7 +251,8 @@ Applying it to our problem of identifying dilemmas, we can compute the Pareto Fr
 
 \begin{equation}
   \PFFn(\mathbf{o}) = \left\{
-     \forall (p, a) \in (\Profiles, \DiscreteActions) : (p, a) | \nexists (p', a') \in (\Profiles, \DiscreteActions) \Q_{p'}(\StateFn_{p'}(\mathbf{o}), a') \gPareto \Q_p(\StateFn_p(\mathbf{o}), a) \right\}
+      (p, a) \in (\Profiles, \DiscreteActions) \, | \, \nexists (p', a') \in (\Profiles, \DiscreteActions)
+      \, \Q_{p'}(\StateFn_{p'}(\mathbf{o}), a') \gPareto \Q_p(\StateFn_p(\mathbf{o}), a) \right\}
   (\#eq:pareto-front)
 \end{equation}
 
@@ -366,7 +369,12 @@ Note that, if the discrete states are exactly the same for all exploration profi
 Two dilemmas that have exactly the same combination of states would have the same proposed actions, which makes it easier to "settle them in the same manner", as our vague definition of context puts it.
 Regardless of the action selection learned as a preference for this context, we are guaranteed to find the same action in both dilemmas.
 
-More formally, this definition of context can be represented as $\ContextFn(\mathbf{o}) = \left\langle \forall p \in \Profiles | \StateFn_p(\mathbf{o}) \right\rangle$.
+<!--
+We use `sloppy` to tell LaTeX it can increase the spacing between words,
+so that the equation will flow to a new line, instead of overflowing into the margin
+-->
+`r if(knitr:::is_latex_output()) '\\sloppy'`
+More formally, this definition of context can be represented as $\ContextFn(\mathbf{o}) =$ $\left\langle \forall p \in \Profiles \, | \, \StateFn_p(\mathbf{o}) \right\rangle$.
 The 2 most important advantages are its simplicity to compute, and the guarantee that dilemmas in a same context have the same actions, as we mentioned.
 However, earlier experiments have demonstrated a few flaws to this simple definition.
 Indeed, with $5$ exploration profiles, and thus lists of $5$ elements, the probability that at least one of these elements differ is quite high, and increases with the number of possible discrete states, i.e., the number of neurons in the State-(D)SOM.
@@ -443,9 +451,17 @@ In this section, we summarize the 3 previous steps, which are formally described
 We recall that, in the first phase, we introduce new exploration profiles: each agent learns a separate profile.
 Each exploration profiles contains a State-(D)SOM, an Action-(D)SOM, a Q-Table, and a new Q-theoretical table, which they learn throughout the time steps by receiving observations, selecting actions to explore them, and receiving rewards.
 Algorithm \@ref(fig:dilemmas-bootstrap-algorithm) describes the process that takes place during the bootstrap phase, although in a pseudo-algorithm manner, where some functions such as the random perturbation (noise) over actions are left out or the update of (D)SOMs, as they have been previously described in Chapter \@ref(learning).
-Learning agents receive observations, and select actions based on the number of times they were already chosen, and noise the action parameters to explore the action space.
-The perturbed action is deemed interesting or not based on the exploration profile's weights and Equation \@ref(eq:interesting-proposed-action-morl).
-Q-Values are updated using Equation \@ref(eq:bellman-morl), and, similarly, Q-theoretical values are updated thanks to Equation \@ref(eq:theoretical-bellman-update).
+
+The bootstrap phase is set for a fixed number $T$ of steps (line 1).
+At each time step $t$, learning agents receive observations (line 4), and determine the state hypothesis as in the Q-SOM and Q-DSOM algorithms (line 5), by leveraging the State-SOM and finding the Best Matching Unit.
+They select actions based on the number of times they were already chosen (lines 6 and 7), and noise the action parameters to explore the action space (line 8).
+The selected action is then executed in the environment (line 9).
+Learning agents receive the new observations and the reward (lines 12 and 13), and use them to update their data structures (State-(D)SOM, Action-(D)SOM, Q-Tables), similarly to the Q-SOM and Q-DSOM algorithms (lines 14-21).
+However, this updated algorithm differs on 2 aspects:
+
+1) The perturbed action is deemed interesting or not based on the exploration profile's weights and Equation \@ref(eq:interesting-proposed-action-morl) (line 16).
+
+2) In addition to the Q-Values, which are updated using Equation \@ref(eq:bellman-morl), the Q-theoretical values are updated thanks to Equation \@ref(eq:theoretical-bellman-update) (line 20).
 
 ```{algorithm dilemmas-bootstrap-algorithm, fig.cap = "Learning process during the bootstrap phase", fig.pos = "!h"}
 \newcommand\mycommfont[1]{\footnotesize\ttfamily\textcolor{gray}{#1}}
@@ -502,9 +518,20 @@ Q-Values are updated using Equation \@ref(eq:bellman-morl), and, similarly, Q-th
 ### Deployment phase
 
 On the other hand, Algorithm \@ref(fig:dilemmas-deployment-algorithm) describes the process in the deployment phase.
-To select an action, agents compute the Pareto Front (PF) of optimal actions, as described in Equation \@ref(eq:pareto-front) and then determine whether each of them is an acceptable action, according to Definition \@ref(def:acceptable-action), leveraging the ethical thresholds set by the human user.
-If no acceptable action can be found, the situation is a dilemma, and the agent looks for a context that would recognize this dilemma, as defined in Definition \@ref(def:dilemmas-context).
-When such a context is found, the action that was associated to this context by the user is selected; otherwise, an interface asks the user for which action to be enacted, and the definition of a context in which the same action should be selected again.
+Note that the algorithm considers a fixed number of time steps $T$ (line 2), but in practice, nothing prevents from setting $T = \infty$.
+At each time step, learning agents receive observations (line 3).
+To select an action, agents compute the Pareto Front (PF) of optimal actions (line 4), as described in Equation \@ref(eq:pareto-front).
+They then determine whether each of them is an acceptable action, according to Definition \@ref(def:acceptable-action), leveraging the ethical thresholds $\zeta$ set by the human user (line 5).
+If at least 1 acceptable action can be found, the situation is not a dilemma, and the agent automatically selects one of the acceptable actions (lines 7-9).
+We propose to choose based on the sum of interests per action, so that the selected action has the best impact on the environment (line 8).
+Otherwise, if no acceptable action can be found, the situation is a dilemma (lines 10-26), and the agent looks for a context that would recognize this dilemma, as defined in Definition \@ref(def:dilemmas-context).
+This means that, for each context, and for each dimension $k$ of the observation space, we check whether the observation $o_{l,t,k}$ is within the bounds $c_{[b_k]}$ and $c_{[B_k]}$ defined by the context (line 13).
+When such a context is found, the action that was associated to this context by the user is selected.
+In the case where no context corresponds (lines 18-24), an interface asks the user for which action to be enacted, and the definition of a context in which the same action should be selected again.
+We filter the proposed actions to remove those which have too similar parameters (lines 20-21): if another action is found with parameters differing by less than 3% on each dimension, the action is removed from the set of proposed actions.
+For example, $\left[1, 1, 1, 1, 1, 1\right]$ and $\left[0.99, 0.98, 0.99, 0.99, 0.99, 1\right]$ have less than 3% difference on each dimension, and thus one of them will be removed.
+Finally, the association of this context to the selected action is memorized (line 23), so that it may be re-used in future time steps.
+The selected action (whether from an existing or a new context) is executed in the environment (line 25).
 
 ```{algorithm dilemmas-deployment-algorithm, fig.cap = "Decision process during the deployment phase", fig.pos = "H"}
 \newcommand\mycommfont[1]{\footnotesize\ttfamily\textcolor{gray}{#1}}
@@ -713,7 +740,7 @@ We expect the agents to quickly identify dilemmas that they cannot settle, as th
 The second goal of these simulations is to demonstrate that the learned behaviours are aligned with the preferences.
 For example, if a human user prefers ecology, represented by the *environmental sustainability* value, the agent should favour actions with high interests for this value, when in an identified dilemma.
 Again, we did not have resources for making experiments with a sufficient number of users.
-Thus, we propose a proxy experiment, by implementing a few synthetic profiles that are hardcoded to take a decision in a dilemma by using simple rules.
+Thus, we propose a proxy experiment, by implementing a few synthetic profiles that are hardcoded to make a decision in a dilemma by using simple rules.
 We make a proof-of-concept experiment and do not assume that such profiles accurately represent the diversity of human preferences in our society, but we make the hypothesis that, if the system correctly learns behaviours that correspond to these hardcoded preferences, it will learn appropriate behaviours when in interaction with real human users.
 
 We propose the following profiles:
@@ -996,9 +1023,27 @@ This is appropriate and sufficiently simple for a laboratory experiment ; howeve
 It would be interesting to allow users to interact with the system at a later step, perhaps by making the agent resort to a default selection mechanism, e.g., a random action or taking the one with the maximum average interests, while still memorizing that this dilemma was not settled.
 Thus, when the user decides to interact with the system, a list of encountered dilemmas would be presented so that adequate actions can be elicited and corresponding contexts defined.
 
+<!-- different definitions of ethical thresholds -->
+
+Finally, we reflect back on some definitions we have proposed, and how different definitions could yield other results.
+A first definition that can be potentially limiting is the *ethical threshold*: we recall that they correspond to the user-set thresholds, above which the interests of an action are considered acceptable.
+The definition of these thresholds that we propose is a simple vector of as many dimensions as there are moral values, i.e., objectives in the multi-objective reward, for example $[80\%, 75\%, 90\%, 70\%]$.
+In this example, the user accepts an action if its interest w.r.t. the 1st moral value attains at least $80\%$ of the theoretical (maximum) interest, *and* at least $75\%$ w.r.t. the 2nd moral value, and so on.
+Users specify a single threshold; however, we sometimes want to accept different alternatives.
+For example, a user might say "I would accept an action that satisfies at least $80\%$ of the 1st moral value *and* $75\%$ of the 2nd moral value, *or* an action that satisfies at least $60\%$ of the 1st moral value *and* $90\%$ of the 3rd moral value".
+As hinted in this example, such preferences can be represented by using disjunctions of conjunctions, i.e., by combining "or" alternatives of "and"-based thresholds.
+In a pseudo-mathematical format, the previous example could be represented as
+$(80\% \land 75\% \land 0\% \land 0\%) \lor (60\% \land 0\% \land 90\% \land 0\%)$.
+Note that it also explicitly allows users to specify thresholds for subsets of values.
+Whereas this is already feasible with the current definition, it is not recommended as there is a single vector of thresholds: a threshold set to $0\%$ would result in the moral value being completely ignored.
+When using disjunctions of conjunctions, a value can be ignored in a given vector, but not in another vector.
+As a result, the ethical thresholds would be more generic, and more flexible.
+This definition would not be technically difficult to implement, as we simply need to compare the interests to a set of potentially multiple vectors, instead of a several vector.
+Yet, in order to be effective, more research is needed, both in moral philosophy to ensure that it is an appropriate definition, and in Human-Computer Interaction to ensure that it is easily usable by users.
+
 <!-- different definitions of preferences -->
 
-Finally, we reflect back on the definition of a "user preference": in this contribution, we proposed to simply define a user preference as an action choice.
+In the same vein, we now reflect back on the definition of a "user preference": in this contribution, we proposed to simply define a user preference as an action choice.
 Others definitions could be possible, e.g., "Choose the action that maximizes the *well-being* value", which can be encoded as a formula based on the actions' interests.
 On the one hand, these definitions would be harder to use for the user, compared to simply selecting the action they prefer.
 On the other hand, they would allow for more flexibility: if the set of actions changes, e.g., because of adaptation, we can still select an appropriate action, because the formula is more generic than directly memorizing the desired action.

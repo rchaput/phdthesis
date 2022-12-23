@@ -30,21 +30,9 @@
 % **************************************************
 \newcommand{\thesisTitle}{$title$}
 \newcommand{\thesisAuthor}{$author$}
-\newcommand{\thesisSubject}{Documentation}  % TODO?
+\newcommand{\thesisSubject}{$title$}
 \newcommand{\thesisDate}{$date$}
-% \newcommand{\thesisVersion}{My First Draft}
 \newcommand{\thesisNnt}{$nnt$}
-
-% \newcommand{\thesisFirstReviewer}{Jane Doe}
-% \newcommand{\thesisFirstReviewerUniversity}{\protect{Clean Thesis Style University}}
-% \newcommand{\thesisFirstReviewerDepartment}{Department of Clean Thesis Style}
-
-% \newcommand{\thesisSecondReviewer}{John Doe}
-% \newcommand{\thesisSecondReviewerUniversity}{\protect{Clean Thesis Style University}}
-% \newcommand{\thesisSecondReviewerDepartment}{Department of Clean Thesis Style}
-
-% \newcommand{\thesisFirstSupervisor}{Jane Doe}
-% \newcommand{\thesisSecondSupervisor}{John Smith}
 
 \newcommand{\thesisUniversity}{$institution$}
 \newcommand{\thesisUniversityDepartment}{$department$}
@@ -121,13 +109,6 @@
 % Various setup
 % **************************************************
 
-%%% \usepackage{natbib}
-% Comment out the natbib line above and uncomment the following two lines to use the new
-% biblatex-chicago style, for Chicago A. Also make some changes at the end where the
-% bibliography is included.
-%\usepackage{biblatex-chicago}
-%\bibliography{thesis}
-
 % Use ref for internal links
 \renewcommand{\hyperref}[2][???]{\autoref{#1}}
 \def\chapterautorefname{Chapter}
@@ -136,6 +117,9 @@
 
 \usepackage{caption}
 \captionsetup{width=5in}
+
+% We need to declare this character for the MARL table in SOTA
+\DeclareUnicodeCharacter{1D701}{\ensuremath{\zeta}}
 
 % \usepackage{times} % other fonts are available like times, bookman, charter, palatino
 
@@ -269,11 +253,6 @@ $endfor$
   }
 
   \end{titlepage}
-
-  % List of departments directors
-   % \cleardoublepage
-   % \input{list_directors.tex}
-   % \cleardoublepage
   }
 }
 
@@ -294,13 +273,8 @@ $endfor$
 % --------------------------
 
 % > set short label names for floating environments figure and table
-%\renewcaptionname{ngerman}{\figurename}{Abb.}
-%\renewcaptionname{ngerman}{\tablename}{Tab.}
 \renewcaptionname{english}{\figurename}{Fig.}
 \renewcaptionname{english}{\tablename}{Tab.}
-
-% > rename the title of the LOL, i.e. list of listings (default is "Listings")
-\renewcommand*{\lstlistlistingname}{List of Listings}
 
 \renewcommand{\contentsname}{Table of Contents}
 
@@ -391,8 +365,14 @@ $endif$
   \tableofcontents				% display table of contents
   \listoffigures
   \listoftables
-% TODO: Listings (algorithms) do not appear in the list of listings!
-%  \lstlistoflistings
+  % Note: `\listofalgorithms` does not create a bookmark nor a line in the ToC.
+  % We add one ourselves by using `\addcontentsline`. However, this line must
+  % correspond to the beginning of the page on which the List of Algorithms
+  % appear: `\cleardoublepage` and `\phantomsection` are used to do this.
+  \cleardoublepage
+  \phantomsection
+  \addcontentsline{toc}{chapter}{List of Algorithms}
+  \listofalgorithms
 % Revert the ToC level to 0
 \makeatletter
 \def\toclevel@chapter{0}
@@ -422,67 +402,3 @@ $body$
 % End of Document CONTENT
 % **************************************************
 \end{document}
-
-
-
-
-% ************************
-%%% title, author, advisors, ...
-% ************************
-% To pass between YAML and LaTeX the dollar signs are added by CII
-% \title{$title$}
-% \author{$author$}
-% % The month and year that you submit your FINAL draft TO THE LIBRARY (May or December)
-% \date{$date$}
-% \division{$division$}
-% \advisor{$advisor$}
-% \institution{$institution$}
-% \degree{$degree$}
-% %If you have two advisors for some reason, you can use the following
-% $if(altadvisor)$
-% \altadvisor{$altadvisor$}
-% $endif$
-% %%% Remember to use the correct department!
-% \department{$department$}
-% % if you're writing a thesis in an interdisciplinary major,
-% % uncomment the line below and change the text as appropriate.
-% % check the Senior Handbook if unsure.
-% %\thedivisionof{The Established Interdisciplinary Committee for}
-% % if you want the approval page to say "Approved for the Committee",
-% % uncomment the next line
-% %\approvedforthe{Committee}
-
-
-% ************************
-%%% parskip-related config
-% ************************
-
-% \frontmatter % this stuff will be roman-numbered
-% \pagestyle{empty} % this removes page numbers from the frontmatter
-
-
-% $if(toc)$
-%   \hypersetup{linkcolor=$if(toccolor)$$toccolor$$else$black$endif$}
-%   \setcounter{secnumdepth}{$toc-depth$}
-%   \setcounter{tocdepth}{$toc-depth$}
-%   \tableofcontents
-% $endif$
-% 
-% $if(lot)$
-%   \listoftables
-% $endif$
-% 
-% $if(lof)$
-%   \listoffigures
-% $endif$
-% 
-% $if(abstract)$
-%   \begin{abstract}
-%     $abstract$
-%   \end{abstract}
-% $endif$
-% 
-% 
-% \mainmatter % here the regular arabic numbering starts
-% \pagestyle{fancyplain} % turns page numbering back on
-

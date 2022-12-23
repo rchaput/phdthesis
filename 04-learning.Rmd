@@ -11,15 +11,19 @@ A discussion of these algorithms' advantages and drawbacks is finally presented 
 We recall that the aim of this first contribution is to answer the first research question: (ref:rq1)
 
 To do so, we propose 2 Reinforcement Learning algorithms.
-They are based on an existing work [@smith2002applications; @smith2002dynamic] that we extend and evaluate in a more complex use-case.
-Our 2 proposed algorithms are meant as a first step, a building basis on top of which we will add improvements and features throughout our next contributions.
-
-In order to facilitate these improvements, we chose to implement them using a modular approach, rather than an end-to-end architecture, as is often found in Deep Neural Networks.
-Such networks, while achieving impressive performance on their task, can be difficult to reuse and modify.
+These algorithms needed to have 2 important properties:
+1) to be able to handle multi-dimensional domains, for both states and actions, as per our hypothesis H2, and as motivated in our state of the art of Machine Ethics.
+2) to be a modular approach, as per the "incremental approach" principle of our methodology.
+Indeed, the algorithms were meant as a first step, a building basis on top of which we would add improvements and features throughout our next contributions.
+In order to facilitate these improvements, modularity was important, rather than implementing an end-to-end architecture, as is often found in Deep Neural Networks.
+Such networks, while achieving impressive performance on their tasks, can be difficult to reuse and modify.
 As we will see in the results, our algorithms obtain similar or even better performance.
 
-As per our hypothesis, and as motivated in our state of the art of Machine Ethics, we focused on continuous multi-dimensional domains, for both states and actions.
-Smith's initial work proposed to leverage Self-Organizing Maps (SOMs) to handle these continuous domains.
+The algorithms that we propose are based on an existing work [@smith2002applications; @smith2002dynamic] that we extend and evaluate in a more complex use-case.
+We found that Smith's initial work proposed, in order to handle continuous domains, to associate Self-Organizing Maps (SOMs) to a Q-Table.
+This idea fulfills the first property, and also offers the modularity required by the second: by combining elements, it allows to easily modify, replace, or even add one or several elements to the approach.
+This motivated our choice of extending Smith's work.
+
 First, we explain what is a Q-Table from the Q-Learning algorithm, and its limitations.
 We then present Self-Organizing Maps, the Dynamic Self-Organizing Map variation, and how we can use them to solve the Q-Table's limitations.
 We combine these components to propose an extension of Smith's algorithm that we name *Q-SOM*, which leverages a Q-Table and Self-Organizing Maps (SOMs), and a new algorithm named *Q-DSOM*, which leverages a Q-Table and Dynamic SOMs (DSOMs).
@@ -28,7 +32,10 @@ Learning agents presented in this chapter correspond to prosumer agents in Figur
 They receive observations and take actions; during our experiments, these observations and actions are those described in this figure and more generally in Section \@ref(positioning-smartgrid).
 
 Figure \@ref(fig:learning1-schema) presents a summarizing schema of our proposed algorithms.
-It includes multiple learning agents that perform actions in a shared environment. In response, the environment changes its state, and sends them observations, potentially different for each agent, corresponding to this new state, as well as a reward indicating how correct the performed action was.
+It includes multiple learning agents that live within a shared environment.
+This environment sends observations to agents, which represent the current state, so that agents may choose an action and perform it in the environment.
+In response, the environment changes its state, and sends them observations, potentially different for each agent, corresponding to this new state, as well as a reward indicating how correct the performed action was.
+Learning agents leverage the new observations and the reward to update their internal model.
 This observation-action-reward cycle is then repeated so as to make learning agents improve their behaviour, with respect to the considerations embedded in the reward function.
 The decision process relies on 3 structures, a State (Dynamic) Self-Organizing Map, also named the State-(D)SOM, an Action (Dynamic) Self-Organizing Map, also named the Action-(D)SOM, and a Q-Table.
 They take observations as inputs and output an action, which are both vectors of continuous numbers.
@@ -233,10 +240,10 @@ We present in details these 2 parts below.
 We now explain the decision process that allows an agent to choose an action from received observations, which is described formally in Algorithm \@ref(fig:qsom-decision-alg) and represented in Figure \@ref(fig:qsom-decision-schema).
 First, we need to obtain a discrete identifier from an observation $\mathbf{o}$ that is a vector $\in \RR^{g}$, in order to access the Q-Table.
 To do so, we look for the Best Matching Unit (BMU), i.e., the neuron whose prototype vector is the closest to the observations, from the State-SOM, which is the SOM tasked with learning the observation space.
-The unique index of the BMU is used as the state identifier $s$.
+The unique index of the BMU is used as the state identifier $s$ (line 2).
 
 We call this identifier a "state hypothesis", and we use it to navigate the Q-Table and obtain the expected interest of each action, assuming we have correctly identified the state.
-Knowing these interests $\Q(s,.)$ for all actions, we can assign a probability of taking each one, using a Boltzmann distribution.
+Knowing these interests $\Q(s,.)$ for all actions, we can assign a probability of taking each one, using a Boltzmann distribution (line 3).
 Boltzmann is a well-known and used method in RL that helps with the exploration-exploitation dilemma.
 Indeed, as we saw in Section \@ref(sota-rl), agents should try to maximize their expectancy of received rewards, which means they should *exploit* high-rewarding actions, i.e., those with a high interest.
 However, the true interest of the action is not known to agents: they have to discover it incrementally by trying actions into the environment, in various situations, and memorizing the associated reward.
@@ -258,16 +265,16 @@ Traditionally, the Boltzmann parameter $\tau$ should be decreasing over the time
 This mechanism ensures the convergence of the agents' policy towards the optimal one, by reducing exploration in later steps, in favour of exploitation.
 However, and as we have already mentioned, we chose to disable the convergence mechanisms in our algorithms, because it prevents, by principle, continuous learning and adaptation.
 
-We draw an action identifier $j$ from the list of possible actions, according to Boltzmann probabilities.
+We draw an action identifier $j$ from the list of possible actions, according to Boltzmann probabilities (line 4).
 From this discrete identifier, we get the action's parameters from the Action-SOM, which is tasked with learning the action space.
-We retrieve the neuron with identifier $j$, and take its prototype vector as the proposed action's parameters.
+We retrieve the neuron with identifier $j$, and take its prototype vector as the proposed action's parameters (line 5).
 
 We can note that this is somewhat symmetrical to what is done with the State-SOM.
 To learn the State-SOM, we use the data points, i.e., the observations, that come from the environment; to obtain a discrete identifier, we take the neurone with the closest prototype.
 For the Action-SOM, we start with a discrete identifier, and we take the prototype of the neuron with this identifier.
 However, we need to learn what are those prototype vectors.
 We do not have data points as for the State-SOM, since we do not know what is the "correct" action in each situation.
-In order to learn better actions, we apply an exploration step after choosing an action: the action's parameters are perturbed by a random noise.
+In order to learn better actions, we apply an exploration step after choosing an action: the action's parameters are perturbed by a random noise (lines 6-9).
 
 In the original work of @smith2002applications, the noise was taken from a uniform distribution $\mathcal{U}_{[-\epsilon,+\epsilon]}$, which we will call the *epsilon* method in our experiments.
 However, in our algorithms, we implemented a normal, or *gaussian*, random distribution $\mathcal{N}(\mu, \sigma^2)$, where $\mu$ is the mean, which we set to $0$ so that the distribution ranges over both negative and positive values, $\sigma^2$ is the variance, and $\sigma$ is the standard deviation.
@@ -276,7 +283,7 @@ The advantage over the uniform distribution is to have a higher probability of a
 These longer jumps may help to escape local extremas, but should be rare, so as to slowly converge towards optimal actions most of the time, without overshooting them.
 This was not permitted by the uniform distribution, as the probability is the same for each value in the range $[-\epsilon,+\epsilon]$.
 
-The noised action's parameters are considered as the chosen action by the decision process, and the agent executes this action in the environment.
+The noised action's parameters are considered as the chosen action by the decision process, and the agent executes this action in the environment (line 10).
 
 ### The learning process
 
@@ -299,6 +306,8 @@ The learning process that makes this possible is formally described in Algorithm
   \KwData{\\
     $\quad \mathcal{U}$ the neurons in the State-(D)SOM\\
     $\quad \mathcal{W}$ the neurons in the Action-(D)SOM\\
+    $\quad \mathbf{U_u}$ the vector associated to neuron $u$ in the State-(D)SOM\\
+    $\quad \mathbf{W_w}$ the vector associated to neuron $w$ in the Action-(D)SOM
     $\quad \pos_U(u)$ is the position of neuron $u$ in the State-(D)SOM grid\\
     $\quad \pos_W(w)$ is the position of neuron $w$ in the Action-(D)SOM grid\\
     $\quad \eta_{U}, \eta_{W}$ elasticity for State- and Action-(D)SOM\\
@@ -315,8 +324,8 @@ The learning process that makes this possible is formally described in Algorithm
   }
 
   \tcc{Compute the neighborhood of neurons}
-  $\forall u \in \mathcal{U} \quad \psi_{U}(u) \gets exp\left(-\frac{1}{\eta_{U}^{2}}\frac{\norm{\pos_{U}(u) - \pos_{U}(s)}}{\norm{\mathbf{o} - \mathbf{U}_i}}\right)$\;
-  $\forall w \in \mathcal{W} \quad \psi_{W}(w) \gets exp\left(-\frac{1}{\eta_{W}^{2}}\frac{\norm{\pos_{W}(w) - \pos_{W}(j)}}{\norm{\mathbf{a} - \mathbf{W}_j}}\right)$\;
+  $\forall u \in \mathcal{U} \quad \psi_{U}(u) \gets exp\left(-\frac{1}{\eta_{U}^{2}}\frac{\norm{\pos_{U}(u) - \pos_{U}(s)}}{\norm{\mathbf{o} - \mathbf{U_u}}}\right)$\;
+  $\forall w \in \mathcal{W} \quad \psi_{W}(w) \gets exp\left(-\frac{1}{\eta_{W}^{2}}\frac{\norm{\pos_{W}(w) - \pos_{W}(j)}}{\norm{\mathbf{a} - \mathbf{W_w}}}\right)$\;
   \tcc{If the action was interesting}
   \If{$r + \gamma \max_{j'} Q(s',j') \stackrel{?}{>} Q(s,j)$}{
     \tcc{Update the Action-(D)SOM}
@@ -327,7 +336,7 @@ The learning process that makes this possible is formally described in Algorithm
   \tcc{Update the Q-Table}
   $\Q(s,j) \gets \alpha_{Q}\psi_{U}(s)\psi_{W}(j)\left[r + \gamma \max_{j'}\Q(i',j') - \Q(s,j)\right] + \Q(s,j)$\;
   \tcc{Update the State-(D)SOM}
-  \ForAll{neuron $u \in \mathbb{U}$}{
+  \ForAll{neuron $u \in \mathcal{U}$}{
     $\mathbf{U_{u}} \gets \alpha_{U}\norm{\mathbf{o} - \mathbf{U_{u}}}\psi_{U}(u)\left(\mathbf{o} - \mathbf{U_{u}}\right) + \mathbf{U_{u}}$\;
   }
 }
@@ -344,15 +353,15 @@ We thus determine whether the perturbed action is better than the proposed actio
   (\#eq:interesting-proposed-action)
 \end{equation}
 
-If the perturbed action is deemed better than the proposed one, we update the Action-(D)SOM towards the perturbed action.
-To do so, we assume that the Best Matching Unit (BMU), i.e., the center of the neighborhood, is the neuron that was selected at the decision step, $j$.
+If the perturbed action is deemed better than the proposed one, we update the Action-(D)SOM towards the perturbed action (lines 4-8).
+To do so, we assume that the Best Matching Unit (BMU), i.e., the center of the neighborhood, is the neuron that was selected at the decision step, $j$ (line 3).
 We then apply the corresponding update equation, Equation \@ref(eq:som-update) for a SOM, or Equation \@ref(eq:dsom-update) for a DSOM, to move the neurons' prototypes towards the perturbed action.
 
-Secondly, we update the actions' interests, i.e., the Q-Table.
+Secondly, we update the actions' interests, i.e., the Q-Table (line 9).
 To do so, we rely on the traditional Bellman's equation that we presented in the State of the Art: Equation \@ref(eq:bellman).
 However, Smith's algorithm introduces a difference in this equation to increase the learning speed.
 Indeed, the State- and Action-(D)SOMs offer additional knowledge about the states and actions: as they are discrete identifiers mapping to continuous vectors in a latent space, we can define a notion of *similarity* between states (resp. actions) by measuring the distance between the states' vectors (resp. actions' vectors).
-Similar states and actions will most likely have a similar interest, and thus each Q-Value is updated at each time step, instead of only the current state-action pair, by taking into account the neighborhoods of the State- and Action-(D)SOMs.
+Similar states and actions will most likely have a similar interest, and thus each Q-Value is updated at each time step, instead of only the current state-action pair, by taking into account the neighborhoods of the State- and Action-(D)SOMs (computed on lines 2 and 3).
 Equation \@ref(eq:neighborhood-bellman) shows the resulting formula:
 
 \begin{equation}
@@ -366,16 +375,27 @@ Intuitively, the equation takes into account the interest of arriving in this ne
 This means that an action could yield a medium reward by itself, but still be very interesting because it allows to take actions with higher interests.
 On the contrary, an action with a high reward, but leading to a state with only catastrophic actions would have a low interest.
 
-Finally, we learn the State-SOM, which is a very simple step.
+Finally, we learn the State-SOM, which is a very simple step (lines 10-12).
 Indeed, we have already mentioned that we know data points, i.e., observations, that have been sampled from the distribution of states by the environment.
 Therefore, we simply update the neurons' prototypes towards the received observation at the previous step.
-Prototype vectors are updated based on both their own distance to the data point, within the latent space, and the distance between their neuron and the best matching unit, within the 2D grid neighborhood.
+Prototype vectors are updated based on both their own distance to the data point, within the latent space, and the distance between their neuron and the best matching unit, within the 2D grid neighborhood (using the neighborhood computed on line 2).
 This ensures that the State-SOM learns to represent states which appear in the environment.
 
 ::: {.remark}
 In the presented algorithm, the neighborhood and update formulas correspond to a DSOM.
 When using the Q-SOM algorithm, these formulas must be replaced by their SOM equivalents.
 The general structure of the algorithm, i.e., the steps and the order in which they are taken, stays the same.
+:::
+
+::: {.remark}
+Compared to Smith's algorithm, our extensions differ in the following aspects:
+
+* DSOMs can be used in addition to SOMs.
+* Hyperparameters are not annealed, i.e., they are constant throughout the simulation, so that agents can continuously learn instead of slowly converging.
+* Actions are chosen through a Boltzmann distribution of probabilities based on their interests, instead of using the $\epsilon$-greedy method.
+* The random noise to explore the actions' space is drawn from a Gaussian distribution instead of a uniform one.
+* The neighborhood functions of the State- and Action-(D)SOMs is a gaussian instead of a linear one.
+* The number of dimensions of the actions' space in the following experiments is greater (6) than in Smith's original experiments (2). This particularly prompted the need to explore other ways to randomly noise actions, e.g., the gaussian distribution. Note that some other methods have been tried, such as applying a noise on a single dimension each step, or randomly determining for each dimension whether it should be noised at each step; they are not disclosed in the results as they performed slightly below the gaussian method. Searching for better hyperparameters could yield better results for these methods.
 :::
 
 ## Experiments {#learning-experiments}
@@ -542,10 +562,9 @@ Taking the average is one of the simplest methods to get a single score for a gi
 
 Tables \@ref(tab:learning1-best-hyperparameters-qsom), \@ref(tab:learning1-best-hyperparameters-qdsom), \@ref(tab:learning1-best-hyperparameters-ddpg), \@ref(tab:learning1-best-hyperparameters-maddpg) summarize the best hyperparameters that have been found for each algorithm, based on the average runs' score obtained when using these parameters.
 
-```{r learning1-best-hyperparameters-qsom}
-#| tab.cap: >
-#|   Best hyperparameters on 10 runs for the Q-SOM algorithm, using the
-#|   *annual small* scenario and *adaptability2* reward function.
+(ref:tab-learning1-hyperparams-qsom-caption) Best hyperparameters on 10 runs for the *Q-SOM* algorithm, using the *annual small* scenario and *adaptability2* reward function.
+
+```{r learning1-best-hyperparameters-qsom, tab.cap="(ref:tab-learning1-hyperparams-qsom-caption)"}
 best <- read.csv("./data/contribution1/hyperparameters_qsom1.csv") %>%
   group_by(input_som_lr, action_som_lr, q_lr, q_gamma, perturbation, action_noise, q_tau) %>%
   summarize(mean_score = mean(score), nb_runs = n(), .groups = "drop") %>%
@@ -568,11 +587,9 @@ tribble(
   autofit()
 ```
 
+(ref:tab-learning1-hyperparams-qdsom-caption) Best hyperparameters on 10 runs for the *Q-DSOM* algorithm, using the *annual small* scenario and *adaptability2* reward function.
 
-```{r learning1-best-hyperparameters-qdsom}
-#| tab.cap: >
-#|   Best hyperparameters on 10 runs for the Q-DSOM algorithm, using the
-#|   *annual small* scenario and *adaptability2* reward function.
+```{r learning1-best-hyperparameters-qdsom, tab.cap="(ref:tab-learning1-hyperparams-qdsom-caption)"}
 best <- read.csv("./data/contribution1/hyperparameters_qdsom1.csv") %>%
   group_by(input_som_lr, input_som_elasticity, action_som_lr, action_som_elasticity, q_lr, q_gamma, perturbation, action_noise, q_tau) %>%
   summarize(mean_score = mean(score), nb_runs = n(), .groups = "drop") %>%
@@ -597,11 +614,9 @@ tribble(
   autofit()
 ```
 
+(ref:tab-learning1-hyperparams-ddpg-caption) Best hyperparameters on 10 runs for the *DDPG* algorithm, using the *annual small* scenario and *adaptability2* reward function.
 
-```{r learning1-best-hyperparameters-ddpg}
-#| tab.cap: >
-#|   Best hyperparameters on 10 runs for the DDPG algorithm, using the
-#|   *annual small* scenario and *adaptability2* reward function.
+```{r learning1-best-hyperparameters-ddpg, tab.cap="(ref:tab-learning1-hyperparams-ddpg-caption)"}
 best <- read.csv("./data/contribution1/hyperparameters_ddpg.csv") %>%
   group_by(ddpg_batch_size, ddpg_lr, ddpg_gamma, ddpg_tau, perturbation, action_noise) %>%
   summarize(mean_score = mean(score), nb_runs = n(), .groups = "drop") %>%
@@ -621,11 +636,9 @@ tribble(
   autofit()
 ```
 
+(ref:tab-learning1-hyperparams-maddpg-caption) Best hyperparameters on 10 runs for the *MADDPG* algorithm, using the *annual small* scenario and *adaptability2* reward function.
 
-```{r learning1-best-hyperparameters-maddpg}
-#| tab.cap: >
-#|   Best hyperparameters on 10 runs for the MADDPG algorithm, using the
-#|   *annual small* scenario and *adaptability2* reward function.
+```{r learning1-best-hyperparameters-maddpg, tab.cap="(ref:tab-learning1-hyperparams-maddpg-caption)"}
 best <- read.csv("./data/contribution1/hyperparameters_maddpg.csv") %>%
   group_by(maddpg_lr_actor, maddpg_lr_critic, maddpg_tau, maddpg_gamma, maddpg_batch_size, maddpg_buffer_size, maddpg_noise, maddpg_epsilon) %>%
   summarize(mean_score = mean(score), nb_runs = n(), .groups = "drop") %>%
@@ -717,10 +730,9 @@ For example, DDPG obtains similar scores on the *daily / small overconsumption* 
 Q-DSOM is also quite on par with Q-SOM on the *daily / small adaptability1* case.
 Yet, MADDPG is consistently outperformed by Q-SOM.
 
-```{r learning1-compare-stats-qsom}
-#| tab.cap: >
-#|   Comparison of the *Q-SOM* algorithm with the others, using a Wilcoxon
-#|   statistical test, with the 'greater' alternative.
+(ref:tab-learning1-compare-qsom-caption) Comparison of the *Q-SOM* algorithm with the others, using a Wilcoxon statistical test, with the 'greater' alternative.
+
+```{r learning1-compare-stats-qsom, tab.cap="(ref:tab-learning1-compare-qsom-caption)"}
 data <- read.csv("./data/contribution1/scores.csv") %>% as_tibble()
 grid <- expand.grid(c("Q-DSOM-1", "DDPG", "MADDPG"), unique(data$ConsumptionProfile), unique(data$EnvironmentSize), unique(data$RewardFunction))
 compare <- function (data, model1, model2, profile, size, reward) {
@@ -870,7 +882,7 @@ This point in particular will be leveraged in our 3rd contribution, through mult
 
 The continuous adaptation was also handled by our design choices, notably by disabling traditional convergence mechanisms.
 The use of (D)SOMs also help, as the representation may shift over time by moving the neurons.
-Additionally, our experiments proved the ability of our algorithms to adapt, especially when compared to other algorithms, through the specific *adaptability1* and *adaptability2* functions.
+Additionally, our experiments highlight the ability of our algorithms to adapt, especially when compared to other algorithms, through the specific *adaptability1* and *adaptability2* functions.
 
 Finally, challenges raised by the multi-agent aspect were partially answered by the use of Difference Rewards to create the reward functions.
 On the other hand, the agents themselves have no specific mechanism that help them learn a behaviour while taking account of the other agents in the shared environment, e.g., contrary to Centralized Training algorithms such as MADDPG.

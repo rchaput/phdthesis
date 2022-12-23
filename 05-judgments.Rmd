@@ -45,12 +45,15 @@ First, we partially use the Ethicaa platform [@cointe2016ethicalJudgmentAgents] 
 The second alternative uses argumentation graphs, with arguments and attack relations between them, to compute the judgment.
 
 Figure \@ref(fig:judgments-abstract-architecture) shows the abstract architecture of this idea, without taking into account the details of either logic-based or argumentation implementations.
-We can see that the "Compute reward" function, which was previously within the environment, is now "agentified", by introducing *judging agents*.
+On the right-side of the figure, learning agents still receive observations from the environment, and they output actions to the environment.
+However, we can see that the "Compute reward" function, which was previously within the environment, is now "agentified", by introducing *judging agents*, on the left side of the figure.
+To perform this computation, judging agents receive the observations from the environment, and actions from learning agents (through the environment).
+
 We want our learning agents to receive rewards based on multiple moral values, as highlighted by our objective O1.1.
-Each judging agent is attributed to a unique moral value, and rely on this explicitly defined value and its associated moral rules to determine the reward that should be sent to each learning agent.
+Each judging agent is attributed to a unique moral value, and rely on this explicitly defined value and its associated moral rules to determine the reward that should be sent to each learning agent, as part of their judgment process.
 It ensues that multiple rewards are produced for each learning agent.
 However, the learning algorithm expects a single, scalar reward.
-Thus, rewards from the different judging agents are aggregated before they are sent.
+Thus, rewards from the different judging agents are aggregated before they are sent to learning agents.
 
 ```{drawio judgments-abstract-architecture, src="figure/contribution2_judging.drawio", out.width = "100%"}
 #| fig.cap: >
@@ -68,7 +71,6 @@ These two implementations outcome from collaboration with interns.
 Jérémy Duval worked on the implementation of the first method, based on Ethicaa agents [@duval2020 ; @chaput2021multi].
 Benoît Alcaraz worked on the second method, judging through argumentation [@alcaraz2021].
 Christopher Leturc, who was at the time an associate lecturer at École des Mines St-Étienne (EMSE), brought his expertise on argumentation for this second internship.
-<!-- I was, in both cases, involved in the internships' supervision, and expanded their work after their internships ended. -->
 :::
 
 ## Designing a reward function through logic rules {#judgments-ethicaa}
@@ -124,7 +126,10 @@ We describe how we leverage this for our proposed model in the next section.
 We now describe the Logic-based Agents for JudgIng Morally-embedded Actions (LAJIMA) model, which is represented in Figure \@ref(fig:judgments-logic-process-schema).
 Each judging agent contains an explicit moral value (VS) and associated moral rules (MR).
 They receive observations ($\mathbf{o_l}$) that are transformed into beliefs ($\mathcal{B}$), and actions ($\mathbf{a_l}$) that are similarly transformed into symbols ($\mathcal{A}$).
-Their judgment process relies on a moral evaluation function ($\texttt{ME}$) for each of the actions component.
+Their judgment process relies on a moral evaluation function ($\ME$) for each of the actions component $a_{l,1}, a_{l,2}, \cdots, a_{l,d}$.
+The moral evaluation function leverages the moral value (VS) and moral rules (MR) to do so.
+Symbolic moral evaluations compose the judgment of each judging agent $j$, which is later transformed into a numeric feedback through the $\Feedback$ function.
+Per-judge feedbacks are finally aggregated to form the reward $r_l$ sent to the learning agent $l$.
 
 ```{drawio judgments-logic-process-schema, src="figure/logic_judgment_process.drawio", out.width = "100%"}
 #| fig.cap: >
@@ -300,6 +305,12 @@ Algorithm \@ref(fig:ethicaa-judgment-process) summarizes the judgment process th
 }
 ```
 
+The foreach loop that begins on line 3 performs the judgment of all learning agents individually and sequentially.
+Each judging agent computes its beliefs over the observations $\mathbf{o_l}$ received by a learning agent $l$ (line 5), and uses them to judge each component of the action parameters (lines 7-9).
+The judgment for each dimension of the action is retained in a vector, so that the judge can later count the number of $\texttt{moral}$ and $\texttt{immoral}$ valuations (lines 14-16).
+Remember that, if the learning agent received only $\texttt{neutral}$ valuations by a given judge, a default reward of $\frac{1}{2}$ is attributed (lines 13 and 19).
+Finally, the reward ultimately received by a learning agent is the average of the per-judge rewards (line 22).
+
 ## Designing a reward function through argumentation {#judgments-argumentation}
 
 We now propose a second method to design the reward function as symbolic judgments, through argumentation.
@@ -321,7 +332,7 @@ The differences between logic rules and argumentation, their respective advantag
 
 Before introducing our AJAR model in the next section, based on argumentation decision frameworks, we briefly cover some necessary knowledge about argumentation.
 
-Abstract argumentation frameworks, first introduced by @dung1995argumentation, allow us to express knowledge as a set of arguments, such as "There are clouds today", "The weather is nice".
+Abstract argumentation frameworks, first introduced by @dung1995acceptability, allow us to express knowledge as a set of arguments, such as "There are clouds today", "The weather is nice".
 Arguments are arranged as nodes of a directed graph, where the links, or edges, between nodes represent binary attack relations.
 For example, the argument "There are clouds today" attacks "The weather is nice".
 This means that, if we consider the argument "There are clouds today" as true, or *alive*, in the current situation, it will be difficult to accept the argument "The weather is nice" as well.
@@ -342,14 +353,15 @@ This can be seen as some sort of decision, where the possible outcomes are "The 
 We propose to use a simplified version of the *Argumentation Framework for Decision-Making* (AFDM) of @amgoud2009using.
 Their model considers that multiple decisions can be possible, whereas in our case, we only need to determine the degree to which an action can be considered *moral*, or *immoral*.
 We thus restrict our arguments to be *pros*, *cons*, or *neutral* arguments, and drop the set of decisions.
+This simplified version, instead of targeting decision-making, focuses on judging decisions, and we thus name it *Argumentation Framework for Judging a Decision* (AFJD).
 
 ::: {.definition #afjd name="AFJD"}
 An Argumentation Framework for Judging a Decision (AFJD) is defined as a tuple:
 
 $AF = \left\langle \Args, \Att, \Fp, \Fc \right\rangle$, where:
 
-* $\Args$ is a non-empty set of arguments. An argument is represented by a name, and has an aliveness condition function.
-* $\Att$ is a binary relation named the attack relation, defined on pairs of arguments.
+* $\Args$ is a non-empty set of arguments. An argument is represented by a name, and has an aliveness condition function. This function is defined as $\texttt{alive} : \StateSpace \rightarrow \mathbb{B}$, where $\StateSpace$ is the space of world states, and $\mathbb{B} = {0, 1}$ is the set of boolean values. It determines whether the argument can be considered "true" in the current state of the world, or "false", in which case the argument is ignored.
+* $\Att$ is a binary relation named the attack relation, defined on pairs of arguments, such that $A \mathbin{\Att} B$ means that argument $A$ attacks argument $B$.
 * $\Fp \in 2^{\Args}$ (for *pros*) is the set of pro-arguments, which indicate that the currently judged action was a moral one.
 * $\Fc \in 2^{\Args}$ (for *cons*) is the set of con-arguments, which indicate that the currently judged action was an immoral one.
 :::
@@ -387,6 +399,7 @@ Thus, if we ignore $arg_2$, can we keep $arg_1$ as well?
 In argumentation theory, this problem is known as defining *acceptability*.
 An argument that is inacceptable should not be taken into account by the judge, contrary to an acceptable argument.
 Acceptability is often based on the notion of conflictness between arguments.
+The following definitions, *conflict-freeness* and *acceptability*, are paraphrased from @dung1995acceptability[p.6]
 
 ::: {.definition #conflictfreeness name="Conflict-freeness"}
 Let $\Args$ be a set of arguments, and $\Att$ be an attack relationship on $\Args$.
@@ -408,6 +421,7 @@ And more importantly, why?
 
 To solve this question, argumentation scholars have proposed various definitions of admissible sets of arguments, called *extensions*.
 The simplest one may be the *admissible* extension, while others propose the *complete* extension, *stable* extension, or *preferred* extension [@dung1995acceptability].
+We define a few extensions that we will use in our proposed algorithm; they are paraphrased from @caminada2007comparing[see Definition 3, p.2] to be slightly more explained.
 
 ::: {.definition #extensions name="Extensions"}
 Let us consider $\Args$ a set of arguments within an Argumentation Framework, and $\SA \subseteq \Args$ a subset of these arguments.
@@ -461,6 +475,11 @@ This allows comparing the learning agent to other agents, e.g., for the average 
 This assumption can be lifted by changing the definition of $\epsilon_j$ to take $\mathbb{O}_l$ as domain; however, this would limit the available arguments, and thus the judgment as a whole.
 
 The world's state $s$ consists of data from the true environment's state and the agents' actions.
+This represents some sort of very limited history, with the world state containing both the action itself and its consequences.
+A better history could also be used, by remembering and logging the actions taken by each agent: this would expand what the designers can judge within the argumentation graphs, e.g., behaviours over several time steps, such as first buying energy at $t$ and then giving at $t'$, with $t' > t$.
+Note that actions from all learning agents are included in the world's state, so that the currently judged agent can be compared to the others.
+This allows arguments such as "the learning agent consumed over 20% more than the average".
+
 For the sake of simplicity, we pre-compute a few elements from these continuous data, such as the average comfort, the difference between the maximum and minimum comfort, the quantity of energy the currently judged learning agent consumed, etc.
 These elements are made available to the judging agents so that they can filter the graph through $\epsilon_j$.
 This pre-computation makes the argumentation graphs easier to design, as arguments, and by extension graphs and judging agents, can directly rely on these elements rather than performing the computation themselves, and it avoids some overhead when 2 different graphs use the same element.
@@ -533,6 +552,27 @@ The figure shows the process for a single learning agent, which is then repeated
 #|   that do not apply. Then, the reward is determined by comparing remaining
 #|   pros and cons arguments.
 ```
+
+Similarly to the previous algorithm, the for loop beginning on line 3 performs the judgment individually and sequentially for each learning agent.
+We compute the world state from all observations of all learning agents (line 5): this world state may contain some pre-computed values to simplify the arguments' activation functions, such as "the learning agent consumed 27% more than the average".
+Judging agents use this world state to filter out arguments that are not enabled, through the $\epsilon_j$ function (line 7).
+This function returns the sub-AFJD that consists of all arguments whose activation function returns true for the current world state $s$; attacks of disabled arguments are also removed.
+In Figure \@ref(fig:ajar-judgment-process), these disabled arguments are in a lighter shade of grey.
+From this sub-AFJD, judges compute the grounded extension (line 8), by removing arguments that are killed and not defended by other arguments.
+To do so, we used the (efficient) algorithm proposed by @nofal2021computing.
+The per-judge reward is computed by comparing the pros and cons arguments remaining in the grounded extension (line 9); we describe a few methods to do so in Section \@ref(judgments-experiments-ajar).
+Finally, the per-judge rewards are aggregated into a scalar one for each learning agent (line 10); again, we compare several approaches in Section \@ref(judgments-experiments-ajar).
+
+::: {.remark name="Value-based Argumentation Frameworks"}
+Usually, AI systems that leverage argumentation and deal with (moral) values focus on Value-based Argumentation Frameworks (VAF) [@bench2002valueBasedArgumentation].
+In these frameworks, compared to our AFJD, each argument is associated to a value, and the framework additionally contains a preference relation over the possible values.
+This allows comparing arguments w.r.t. their respective values, such that an argument can be deemed stronger than another because its associated value is preferred.
+When using such frameworks, all arguments belong to the same graph and can thus interact with each other.
+On the contrary, in our approach, we proposed that different values are represented by different graphs, separated from each other.
+This means that an argument, relative to a given value, e.g., ecology, cannot attack an argument relative to another value, e.g., well-being.
+An advantage of this design choice is that we may add (resp. remove) moral values, i.e., argumentation graphs, without having to consider all possible interactions between the existing arguments and the new (resp. old) arguments.
+Yet, VAFs are well suited for decision-making, as they require the designer to consider such interactions when building the graph; we argue that using our AFJD is on the other hand suited for judgment-making.
+:::
 
 ## Experiments {#judgments-experiments}
 
@@ -645,8 +685,8 @@ ratio
 : \begin{align*}
   \mathit{top} & = \length{\FpInGrd}^2 - \length{\FcInGrd}^2 \\
   \mathit{down} & = \length{\FpInGrd} + \length{\FcInGrd} \\
-  \mathit{max\_count} & = \max( \mathit{max\_count}, \mathit{down} ) \\
-  \texttt{J}_{ratio} & = \frac{\mathit{top}}{\mathit{max\_count}}
+  \mathit{max\_count}_{t} & = \max( \mathit{max\_count}_{t-1}, \mathit{down} ) \\
+  \texttt{J}_{ratio} & = \frac{\mathit{top}}{\mathit{max\_count}_{t}}
 \end{align*}
 : This function thus avoids the pitfalls of the previous one, by only comparing with a number of activated arguments that is realistically attainable. However, it still suffers from some drawbacks. For example, we cannot compute *a priori* the maximum number of activated arguments; instead, we maintain and update a global counter. This means that the rewards' semantics may change over the time steps: a $\frac{1}{2}$ might be later judged as a $\frac{1}{3}$, simply because we discovered a new maximum. Taking this reasoning further, we can imagine that maybe, in a given simulation, the maximum known number will be 2 for most of the time steps, and finally during the later steps we will discover that in fact the maximum could attain 4. Thus, all previous rewards would have deserved to be $\frac{x}{4}$ instead of $\frac{x}{2}$, but we did not know that beforehand.
 
@@ -905,8 +945,10 @@ We leave this question aside, as our work does not concern the acceptability of 
 One of the fundamental differences between our 2 proposed models is the kind of symbolic elements that are leveraged.
 In LAJIMA, logic rules are used, along with beliefs, and plans, whereas AJAR uses arguments and graphs.
 This has an impact on the ability to read and understand the reward function, i.e., the expected behaviour, by designers first, but more importantly by non-experts people.
-For example, the well-known Mycin example has shown that expert systems, which rely on similar rules to our LAJIMA model, were difficult to understand by doctors, although it could theoretically "explain" its reasoning by showing the trace of rules that were triggered.
+For example, the well-known Mycin [@buchanan1984rule] example has shown that expert systems, which rely on similar rules to our LAJIMA model, were difficult to understand by doctors, although it could theoretically "explain" its reasoning by showing the trace of rules that were triggered.
+More importantly, it was difficult for users to integrate their own knowledge in the system.
 Arguments' activation allows visualizing the reasoning as a graph and see the attacks as a map, which may be easier to understand for lay users rather than plans and beliefs.
+Graphs are updated by adding (or removing) arguments (nodes), and specifying the attacks on other arguments, visually represented by edges; this, again, may be easier to use rather than rules laid out in a textual format, for domain experts who are not versed in AI development.
 However, we did not test this hypothesis with a Human-Computer Interaction experiment, and more work is required on this subject.
 
 <!-- Perspective: moral values and aims -->
@@ -925,7 +967,18 @@ Considering this union is not difficult from a technical point of view, but comp
 Finally, another important element is the choice of the aggregation function.
 Indeed, the learning algorithms, in their current form, require a single reward per learning agent, whereas we have multiple judging agents representing various moral values.
 We thus need to aggregate, and we proposed several methods to do so: the average function, which is probably the most classical and intuitive way, the min function, which is almost as classical, and finally our custom Weighted Random, which mimics the behaviour of min while adding stochasticity to avoid "stuck" situations.
-This choice is important for the resulting behaviour, as it determines how the moral values are learned, in which order, how the system handles values of different "difficulties", and situations where values are in conflict.
+Perhaps other functions could be explored, e.g., in computational social choice [@chevaleyre2007short], and more specifically in multi-criteria decisions, several approaches have been proposed to replace min-based aggregation, such as *ordered weighted min*, or *leximin* [@dubois1997beyondMinAggregation].
+Basically, the idea of these approaches is to introduce some kind of preference or priority over the various criteria.
+They have been thoroughly explored within the field of social choice, especially for fair division, for decision-making purposes.
+However, in our case, the "decision" is not to select an action, e.g., a way to distribute resources among agents, but rather to select a reward that will be used to learn the correct action.
+This (subtle) difference calls for more research and experiments to apply such approaches to the problem of reward selection, in order to avoid pitfalls.
+For example, who should set the preferences over moral values?
+Should it be the designers, using the same preferences for all agents, or the users, using their own (different) preferences for their own agent?
+In this second case, would users be able to make their agent "ignore" of the moral values by carefully crafting their preferences?
+Should we allow them this possibility?
+And how can we prevent them from doing so?
+
+The choice of the aggregation function is important for the resulting behaviour, as it determines how the moral values are learned, in which order, how the system handles values of different "difficulties", and situations where values are in conflict.
 Yet, the scalarization idea is not ideal: by principle, scalarizing makes us lose information.
 Whether we take an average, a min, or a random reward among those proposed, we still send less feedback to the agent than with the full set of rewards.
 We have identified 2 groups of ideas to replace it:

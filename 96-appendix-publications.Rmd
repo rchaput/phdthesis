@@ -1,0 +1,53 @@
+<!--
+This file contains the list of my publications.
+Note: I use Definition Lists for the styling; blank lines inform Pandoc that
+we do not want a *compact* list (which would be printed without any space
+between consecutive definitions, and not very readable).
+-->
+
+# Publications
+
+```{r setup-publications-latex, results="asis", eval=knitr:::is_latex_output()}
+# We need to change the styling of definition lists in LaTeX, because the
+# default style allows the definition to start on the same line as the label.
+# We want the label to be the publication's title, then on a new line, the
+# publication's place ("International Conference", etc.), and then on a 3rd
+# line, the publication reference.
+# It is important to change the style only here, as we do not want to impact
+# other definition lists (e.g., the moral values in 3.4.5).
+# Note: `\setlist` comes from the `enumitem` package, which should already
+# be included.
+cat("
+\\setlist[description]{
+    style=nextline
+}
+")
+```
+
+
+A Multi-Agent Approach to Combine Reasoning and Learning for an Ethical Behavior
+
+:   *International Conference*
+
+    Rémy Chaput, Jérémy Duval, Olivier Boissier, Mathieu Guillermin, Salima Hassas. A Multi-Agent Approach to Combine Reasoning and Learning for an Ethical Behavior. AIES '21: AAAI/ACM Conference on AI, Ethics, and Society, May 2021, Virtual Event USA, United States. pp.13-23, [10.1145/3461702.3462515](https://doi.org/10.1145/3461702.3462515). [emse-03318195](https://hal-emse.ccsd.cnrs.fr/emse-03318195)
+
+
+Explanation for Humans, for Machines, for Human-Machine Interactions?
+
+:   *International Workshop*
+
+    Rémy Chaput, Amélie Cordier, Alain Mille. Explanation for Humans, for Machines, for Human-Machine Interactions?. AAAI-2021, Explainable Agency in Artificial Intelligence WS, AAAI, Feb 2021, Virtual Conference, United States. [hal-03106286](https://hal.archives-ouvertes.fr/hal-03106286)
+
+
+Approche multi-agent combinant raisonnement et apprentissage pour un comportement éthique
+
+:   *National Conference*
+
+    Rémy Chaput, Jérémy Duval, Olivier Boissier, Mathieu Guillermin, Salima Hassas. Approche multi-agent combinant raisonnement et apprentissage pour un comportement éthique. Journées Francophones sur les Systèmes Multi-Agents, Jun 2021, Bordeaux, France. [emse-03278353](https://hal-emse.ccsd.cnrs.fr/emse-03278353)
+
+
+Apprentissage adaptatif de comportements éthiques
+
+:   *National Conference*
+
+    Rémy Chaput, Olivier Boissier, Mathieu Guillermin, Salima Hassas. Apprentissage adaptatif de comportements éthiques. 28e Journées Francophones sur les Systèmes Multi-Agents (JFSMA'2020), Jun 2020, Angers, France. [hal-03012127](https://hal.archives-ouvertes.fr/hal-03012127)

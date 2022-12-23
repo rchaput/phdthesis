@@ -70,7 +70,7 @@ Otherwise, if the offer is rejected, both agents receive nothing.
 
 Perhaps the ubiquitous use of discrete representations in Machine Ethics can be at least partially explained by their simplicity of usage within AI techniques.
 These "discrete dilemmas" are important, because they may very well happen one day in our society.
-We need systems that are able to take the best decision, with respect to our moral values, in such situations.
+We need systems that are able to make the best decision, with respect to our moral values, in such situations.
 
 However, there are other situations that cannot be easily described by discrete representations.
 For example, foretelling the Smart Grid use-case that we describe in Section \@ref(positioning-smartgrid), when considering an energy distribution system, we may transition from a closed question "Should the agent consume energy? yes/no" to a more open question "What power should the agent request during a given time step?".
@@ -101,7 +101,7 @@ The artificial agents' goal is to represent and support the principals in their 
 To ensure that STS promote ethical outcomes, they define *ethical postures*, both individual, i.e., how an agent responds to a principal's value preferences, and systemic, i.e., how a STS considers all stakeholders' value preferences.
 The designers' goal is thus to correctly engineer the STS and agents' ethical postures, by eliciting value preferences from principals and stakeholders.
 
-In Ethicaa [@cointe2016ethicalJudgmentAgents], a judgment process is defined to allow agents to both 1) select the best ethical action that they should take, and 2) judge the behaviour of other agents so as to determine whether they can be deemed as "ethical", with respect to one's own preferences and upheld moral values.
+In Ethicaa [@cointe2016ethicalJudgmentAgents], a judgment process is defined to allow agents to both 1) select the best ethical action that they should make, and 2) judge the behaviour of other agents so as to determine whether they can be deemed as "ethical", with respect to one's own preferences and upheld moral values.
 One long-term objective of this 2nd point can be to define and compute a trust indicator for other agents; if an agent acts ethically, we may trust it.
 This raises an interesting rationale for exploring Machine Ethics in Multi-Agent Systems: even if we manage to somehow create a full ethical agent, which is guaranteed to take moral values and ethical stakes into account, it will have to work with other agents.
 We cannot guarantee that these agents will follow the same ethical preferences, nor even that they will consider ethical stakes at all.
@@ -320,6 +320,8 @@ This removes the assumption that we know the correct answer to each input.
 Instead, we provide a reward function, and thus optimize the agent's output step by step, by improving the proposed action based on the reward.
 
 There is also evidence that RL could model the learning and decision-making mechanisms of the human brain [@subramanian2022Reinforcement].
+In particular, neuromodulators and especially dopamine have been studied with RL [@niv2009RLinBrain].
+Yet, some human behaviours seem to be inconsistent with (current) RL, e.g., alternating actions rather than repeating when the reward is far higher than expected [@shteingart2014RLandHumanBehavior].
 
 The goal of a RL algorithm is to learn a policy, or strategy, denoted $\pi$, such that the agent knows which action to take in each situation.
 $\pi$ is often defined as $\pi : \StateSpace \to \ActionSpace$ in the case of a *deterministic* policy, where $\StateSpace$ is the space of possible states, and $\ActionSpace$ the space of possible actions.
@@ -478,6 +480,7 @@ In their survey, @hernandez2019surveyLearningMultiagent classify approaches into
 > 3. Respond to target opponents. Algorithms in this group have a clear and defined target opponent in mind and optimize against that opponent strategy.
 > 4. Learn opponent models. These are model-based approaches that learn how the opponent is behaving and use that model to derive an acting policy. When the opponent changes they need to update its model and policy.
 > 5. Theory of mind. These algorithms model the opponent assuming the opponent is modelling them, creating a recursive reasoning.
+>
 > [@hernandez2019surveyLearningMultiagent, p.18]
 
 Each category is more sophisticated than the previous, with the *ignore* category being the simplest one: as its name indicates, the algorithms simply ignore the existence of other agents and assume a perfectly stationary environment.
@@ -502,8 +505,56 @@ Each time an action is taken, this makes the current state, or situation, change
 Agents must learn to take the actions that lead to the best states.
 
 To take other agents into account, the preferred way seems to be integrating additional data about them to the agent's observations.
-Indeed, out of the 23 approaches suited for SDTs or SGs, we note that only 2 rely only on the local agents' observations and their own reward.
+Indeed, out of the 24 approaches suited for SDTs or SGs identified by @hernandez2019surveyLearningMultiagent, we note that only 2 rely only on the local agents' observations and their own reward (Q-Learning [@watkins1992qlearning] and Wolf-PHC [@bowling2002multiagent]).
 All other approaches require at least the observation of others' actions, and 7 of them further require the observation of the others' rewards as well.
+These approaches are listed in Table \@ref(tab:tab-marl), where the algorithms' requirements in terms of observability are colorized to ease reading.
+We refer the interested reader to @hernandez2019surveyLearningMultiagent[p.22] for the original, full table with additional details.
+
+(ref:tab-marl-caption) List of multi-agent approaches focusing on Sequential Decision Tasks or Stochastic Games, and the observability they require. Adapted from @hernandez2019surveyLearningMultiagent.
+
+```{r tab-marl, tab.cap="(ref:tab-marl-caption)"}
+tibble::tribble(
+  ~Category,        ~Algorithm,     ~Observability,
+  "Ignore",         "Q-learning",   "Local",
+  "Ignore",         "R-MAX",        "Opponent actions and rewards",
+  "Forget",         "WOLF-IGA",     "Opponent actions and rewards",
+  "Forget",         "WOLF-PHC",     "Local",
+  "Forget",         "FAL-SG",       "Opponent actions",
+  "Target",         "Minimax-Q",    "Opponent actions",
+  "Target",         "Nash-Q",       "Opponent actions and rewards",
+  "Target",         "HM-MDPs",      "Opponent actions",
+  "Target",         "FF-Q",         "Opponent actions and rewards",
+  "Target",         "EXORL",        "Opponent actions and rewards",
+  "Target",         "Hyper-Q",      "Opponent actions",
+  "Target",         "Correlated-Q", "Opponent actions and rewards",
+  "Target",         "NSCP",         "Opponent actions",
+  "Target",         "ORDP",         "Opponent actions",
+  "Target",         "Pepper",       "Opponent actions",
+  "Target",         "MDP-A",        "Opponent actions",
+  "Target",         "BPR",          "Opponent actions",
+  "Target",         "HS3MDPs",      "Opponent actions",
+  "Target",         "OLSI",         "Opponent actions",
+  "Learn",          "RL-CD",        "Opponent actions",
+  "Learn",          "𝜁-R-MAX",      "Opponent actions",
+  "Theory of mind", "RMM",          "Opponent actions and rewards",
+  "Theory of mind", "I-POMDP",      "Opponent actions",
+  "Theory of mind", "MToM",         "Opponent actions"
+) %>%
+  as_grouped_data(groups = c("Category")) %>%
+  as_flextable() %>%
+  bold(j = 1, i = ~ !is.na(Category), bold = TRUE, part = "body") %>%
+  bold(part = "header", bold = TRUE) %>%
+  color(j = "Observability", i = ~ Observability %in% "Local", color = "blue") %>%
+  color(j = "Observability", i = ~ Observability %in% "Opponent actions", color = "orange") %>%
+  color(j = "Observability", i = ~ Observability %in% "Opponent actions and rewards", color = "red") %>%
+  # add_footer_lines(c(
+  #   "2 approaches only require local data (actions and rewards)",
+  #   "15 approaches require knowing the other agents' actions",
+  #   "7 approaches require knowing both others' actions and rewards"
+  # )) %>%
+  # fontsize(size = 10, part = "body") %>%
+  autofit()
+```
 
 These additional data help agents learn a model of other agents, but represent a privacy breach.
 Indeed, considering a "real-life" use-case, such as the repartition of energy within a neighborhood, this means that each agent has access to the consumption habits of the neighbors, which may not be acceptable, or even legal.
@@ -558,7 +609,7 @@ In this case, we say that $\V(s_1) = \left(1, 0.5\right)$.
 This change in the definition raises a problem to compare states between them: let us consider another state $s_2$ with $\V(s_2) = \left(0.8, 2\right)$.
 Is $s_2$ preferable to $s_1$, or $s_1$ preferable to $s_2$?
 Each of them dominates the other on one objective, but is dominated on the other.
-We might want to say that they are incomparable; still, the agent must take a decision and choose an action that will yield either $s_1$ or $s_2$.
+We might want to say that they are incomparable; still, the agent must make a decision and choose an action that will yield either $s_1$ or $s_2$.
 
 Similarly, the "best" policy is no longer defined: we cannot, for each state, choose the action that has the maximum $\Q(s, a')$, since $\Q(s, a')$ becomes a vector, instead of a scalar, and the $max$ operator is not defined among vectors.
 To solve this problem, most MORL algorithms propose to compute a *solution set*, i.e., a set of multiple optimal policies.
@@ -572,6 +623,7 @@ The undominated set, $U(\Pi)$, is the subset of all possible policies $\Pi$ and 
   U(\Pi) = \left\{ \pi \in \Pi | \exists \texttt{u}, \forall \pi' \in \Pi : \texttt{u}\left(\mathbf{V}^{\pi}\right) \geq \texttt{u}\left(\mathbf{V}^{\pi'}\right) \right\}.
   (\#eq:undominated-set)
 \end{equation}
+[@hayes2022practical, p.7]
 :::
 
 The idea of MORL algorithms is then to learn a set of optimal policies such that, for any human user preferences, which are represented by the utility function $\texttt{u}$, a policy can be found that has the maximized scalarised value.
@@ -632,7 +684,26 @@ Another variation may be to learn from "data", i.e., non-symbolic inputs in thei
 A large part of this boxology is dedicated to *explainable* systems, which is coherent with the current increase of literature on the subject: a ML tool may produce symbols from data, and a Knowledge Reasoning (KR) tool can be used to produce an explanation in the form of symbols.
 We refer the interested reader to the survey for more details about the evoked techniques [@harmelen2019boxologyDesignPatterns].
 
-<!--
-@bordini2020, @belle2020, @harmelen2019boxologyDesignPatterns, @garcez2015, @bader2005
-already an article in 1994 (@shavlik1994) => old topic
--->
+Whereas Neural-Symbolic AI is not a novel idea -- some works can be found as early as 1991 [@shavlik1991approach; @towell1991symbolic] and 1994 [@shavlik1994combining] -- it recently seemed to gain traction.
+Hybrid approaches managed to attain impressive performances [@yu2021surveyNeuralSymbolic] in various domains.
+
+In the field of (Deep) Reinforcement Learning, more specifically, several works have been proposed.
+Figure \@ref(fig:fig-garnelo) gives an example of the approach proposed by @garnelo2016towards, which represents an endogenous hybrid architecture, in which the RL agent comprises a *neural back-end*, which learns representations by mapping high-dimensional input data to low-dimensional symbols, and a *symbolic front-end*, which reasons about the low-dimensional symbols to decide which action should be executed.
+An advantage of their approach is that the RL agent learned to "recognize" different types of objects, and to only collect the correct ones, when compared to a purely Deep Learning approach (DQN).
+This also allows the hybrid architecture to transfer knowledge between two tasks, one using a fixed grid, and another using a random grid, as the symbolic elements are similar enough.
+However, their experiments used a toy example, which raises questions about the proposed approach's ability to perform in a more complex ("real world") scenario.
+
+(ref:fig-garnelo-caption) An example architecture of Hybrid (Deep) Reinforcement Learning, proposed by @garnelo2016towards.
+
+```{r fig-garnelo, out.width = "75%", fig.cap="(ref:fig-garnelo-caption)"}
+knitr::include_graphics("figure/garnelo_hybrid_rl.png")
+```
+
+Another approach tries to implement *Common Sense* into RL, through a hybrid architecture, using sub-states to represent symbolic elements [@garcez2018towards].
+However, as in the previous work, their use-case rely on a toy example.
+
+The previous examples can be categorized as adding symbolic elements to a machine learning base (the RL algorithm).
+A different form of Hybrid architecture is the other way around: implement ML techniques within a symbolic framework.
+For example, @bordini2020agent focus on Agent-Oriented Programming (AOP) and propose to develop better BDI agents by leveraging ML at 3 different phases: 1) sensing, where, e.g., computer vision can be used to identify objects in a scene; 2) planning, where, e.g., ML can be used to learn contextual elements, or RL can be used to optimize action selection; and 3) acting, where ML can be used to determine the order in which steps should be executed to ensure they are achieved by their deadline.
+Interestingly, they mention that the architecture itself can be *endogenous*, i.e., the ML components and techniques are embedded within the BDI agent, or *exogenous*, i.e., ML is provided as a service, which may run on the same machine as the agent, or on a remote machine ("in the Cloud").
+Such Cloud services are common in speech recognition or text-to-speech, for example.

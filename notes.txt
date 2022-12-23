@@ -20,12 +20,6 @@ Best practices by rOpenSci:
 Example of CI:
   https://github.com/r-lib/actions/blob/v1/examples/bookdown.yaml
 
-TODO: set the extra preamble in the engine.opts options rather than hardcoded
-  in the template. (packages "amsmath" and "amsfonts")
-
-TODO: increase size of algorithms. Using `\documentclass[14pt]{standalone}`
-  does not seem to work?
-
 https://ardata-fr.github.io/flextable-book
 
 We need to be in math mode to use \texttt? (Otherwise, pandoc will not produce
@@ -53,10 +47,16 @@ TODO: Clean included packages in the LaTeX template.
   Some of them are included multiple times => need to find where and which
   options should we keep.
 
-TODO: Make a glossary of notations and definitions in an appendix.
-
 Appendices:
 - https://tex.stackexchange.com/questions/25191/appendix-chapters-typeset-as-sections-in-toc
 - https://latex.org/forum/viewtopic.php?t=1750
 - https://latexref.xyz/_005caddcontentsline.html
 - https://tex.stackexchange.com/questions/286968/grouping-together-sections-in-toc
+
+Placement of figures:
+- https://bookdown.org/yihui/rmarkdown-cookbook/figure-placement.html
+
+About `\phantomsection`:
+We need it for both the List of Algorithms and the Appendix "false" part,
+so that hyperref points to the correct page.
+https://tex.stackexchange.com/questions/44088/when-do-i-need-to-invoke-phantomsection

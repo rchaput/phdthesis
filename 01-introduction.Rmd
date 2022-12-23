@@ -35,17 +35,17 @@ Throughout the manuscript, we will sometimes refer to this general framework to 
 These design choices pave the way for the requirements of the general framework.
 
 From this general framework, we particularly extract two assumptions.
-First, ethical stakes and the whole ethical knowledge that is necessary for ethical decision-making, i.e., the ability to take decisions that integrate ethical considerations and would be deemed as ethically-aligned by humans, necessarily comes from humans.
+First, ethical stakes and the whole ethical knowledge that is necessary for ethical decision-making, i.e., the ability to make decisions that integrate ethical considerations and would be deemed as ethically-aligned by humans, necessarily comes from humans.
 Whether artificial agents can be fully moral agents is an out-of-scope debate for this manuscript, and we leave this question to moral philosophers.
 We will simply assume that current agents are probably not able to demonstrate the same level of ethical capabilities as humans, because they lack some metaphysical properties, such as free will.
-Despite this, we still would like them to take actions that consider, as much as possible, ethical considerations, so as to improve our lives.
+Despite this, we still would like them to make actions that consider, as much as possible, ethical considerations, so as to improve our lives.
 
 Floridi and Sanders argue that, whereas there is a difference between artificial agents and humans, under the correct Level of Abstraction, some artificial agents can be said to have moral accountability.
 They propose an alternative definition of morality that allows including these artificial agents [@floridi2004MoralityArtificialAgents]:
 
 > An action is said to be morally qualifiable if and only if it can cause moral good or evil. An agent is said to be a moral agent if and only if it is capable of morally qualifiable action.
 
-In order to make artificial agents capable to take morally good actions, rather than evil, we argue they need to receive ethical considerations, from those who possess them, i.e., humans.
+In order to make artificial agents capable to make morally good actions, rather than evil, we argue they need to receive ethical considerations, from those who possess them, i.e., humans.
 We will refer to this as the *ethical injection*, of which the particular form depends on the specificities of employed AI techniques, the envisioned use-case, etc.
 
 The second assumption is that, although we share similar moral values, human ethical preferences are contextualized.
@@ -62,8 +62,10 @@ In this thesis, we focus on, and solve, the following objectives.
 2. Learn ethical behaviours, in situations, which are well-aligned with human values.
     1. Behaviours should consider non-dilemma situations, which may imply ethical stakes, but not necessarily in conflict.
     2. Behaviours should consider dilemmas situations, with conflicts between stakes.
-    3. The system must learn according to a well-defined specification of the desired behaviour, to avoid "gaming" or mis-alignment.
+    3. The system must learn according to a well-defined specification of the desired behaviour, to avoid "specification gaming"[^specif-gaming] or mis-alignment.
 3. Implement a prototype use-case to demonstrate the feasibility of the approach.
+
+[^specif-gaming]: Also called the "King Midas problem" -- getting exactly what you asked, but not what you intended. See for example this [blog post from Deep Mind](https://www.deepmind.com/blog/specification-gaming-the-flip-side-of-ai-ingenuity) for details and examples.
 
 
 <!-- Hypotheses / Design Choices -->

@@ -44,15 +44,6 @@ bibliography: references.bib
 csl: csl/apa.csl
 # Add links to citations in the HTML output
 link-citations: true
-
-# Table of Contents
-# toc: true
-# List of Tables
-# lot: true
-# List of Figures
-# lof: true
-# List of Listings
-# lol: true
 ---
 
 

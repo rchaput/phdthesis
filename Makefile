@@ -1,42 +1,52 @@
-# By default, compile the whole book in `serve`.
-PREVIEW=FALSE
+PREVIEW ?= FALSE              ## Whether to avoid compiling the whole book in `serve`.
+OUTPUT_PDF ?= _book/pdf       ## Output directory when compiling the PDF book.
+OUTPUT_HTML ?= _book/gitbook  ## Output directory when compiling the HTML book.
+OUTPUT_ALL ?= _book/all       ## Output directory when compiling both PDF and HTML.
 
 
-# Build only the PDF in its specific folder.
-pdf:
-	R -q -e 'library(bookdown); bookdown::render_book("index.Rmd", "thesisdown::thesis_pdf", output_dir = "_book/pdf")'
+## ┌───────────────────────────────────────────────────────────────────┐
+## │                      Building the manuscript                      │
+## │ ───────────────────────────────────────────────────────────────── │
+## │ Important commands: "make pdf", "make gitbook", "make all"        │
+## └───────────────────────────────────────────────────────────────────┘
 
-# Build only the book (HTML) in its specific folder.
-gitbook:
-	R -q -e 'library(bookdown); bookdown::render_book("index.Rmd", "thesisdown::thesis_gitbook", output_dir = "_book/gitbook")'
 
-# Build both PDF and HTML, in the same folder. Thus, the HTML version links to the PDF for downloading.
-all:
-	R -q -e 'library(bookdown); bookdown::render_book("index.Rmd", c("thesisdown::thesis_pdf", "thesisdown::thesis_gitbook"), output_dir = "_book/all"); warnings()'
+help: ## Show this help.
+# regex for general help
+	@sed -ne "s/^##\(.*\)/\1/p" $(MAKEFILE_LIST)
+# regex for makefile commands (targets)
+	@printf "────────────────────────`tput bold``tput setaf 2` Make Commands `tput sgr0`────────────────────────────────\n"
+	@sed -ne "/@sed/!s/\(^[^#?=]*:\).*##\(.*\)/`tput setaf 2``tput bold`\1`tput sgr0`\2/p" $(MAKEFILE_LIST)
+# regex for makefile variables
+	@printf "────────────────────────`tput bold``tput setaf 4` Make Variables `tput sgr0`───────────────────────────────\n"
+	@sed -ne "/@sed/!s/\(.*\)?=\(.*\)##\(.*\)/`tput setaf 4``tput bold`\1:`tput setaf 5`\2`tput sgr0`\3/p" $(MAKEFILE_LIST)
 
-# Note: we set `preview=FALSE` to try and avoid some bugs when the recompiled file has not the same name as the original (???)
-# e.g., "02-positioning.Rmd" is compiled as "03-positioning.html", which means that the updated website shows no difference...
-# We must manually navigate to "03-positioning.html" to discover the updated changes.
-# `preview=FALSE` forces to recompile the *whole* website each time a change is detected.
-# This is fine during the first steps of writing, because the book is still small. Maybe we will have to disable it later.
+
+pdf:  ## Build the PDF manuscript only.
+	R -q -e 'bookdown::render_book("index.Rmd", "thesisdown::thesis_pdf", output_dir = "$(OUTPUT_PDF)")'
+
+
+gitbook:  ## Build the HTML manuscript only.
+	R -q -e 'bookdown::render_book("index.Rmd", "thesisdown::thesis_gitbook", output_dir = "$(OUTPUT_HTML)")'
+
+
+# Using the same folder allows the HTML version to link to the PDF for downloading.
+all:  ## Build both PDF and HTML manuscripts (in the same folder).
+	R -q -e 'bookdown::render_book("index.Rmd", c("thesisdown::thesis_pdf", "thesisdown::thesis_gitbook"), output_dir = "$(OUTPUT_ALL)"); warnings()'
+
+
+# `preview=FALSE` forces to recompile the whole book, which avoids some bugs,
+# but costs more time. This is fine during the first steps of writing, because
+# the book is still small, but should be disabled in later steps.
 # Use `make serve PREVIEW=TRUE` to disable it.
-serve:
-	R -q -e 'library(bookdown); bookdown::serve_book(output_dir = "_book/serve", preview = $(PREVIEW))'
+serve:  ## Live preview (with auto-reload) of the HTML book.
+	R -q -e 'bookdown::serve_book(output_dir = "_book/serve", preview = $(PREVIEW))'
 
-# Deploy the whole website (HTML+PDF, see `all`) to a remote server.
-# `make all` should be called before (not set as a prerequisite here to avoid forcing recompilation each time).
-# Variables $USER, $HOST, $PORT, $DIR should be set.
-deploy:
-	[ "$(REMOTE_USER)" != "" ]
-	[ "$(REMOTE_HOST)" != "" ]
-	[ "$(REMOTE_DIR)" != "" ]
-	rsync --delete --recursive _book/all/ $(REMOTE_USER)@$(REMOTE_HOST):$(REMOTE_DIR)
 
-# Remove compiled files. `_book` contains the produced files, `thesis.log/lol` are produced by LaTeX.
-# Intermediate files (cache, figures) in `_bookdown_files` are not removed.
-clean:
+clean:  ## Remove compiled files (intermediate files are kept).
+# `_book` contains the produced files; `thesis.log/lol` are produced by LaTeX.
 	rm -rf _book/ thesis.log thesis.lol
 
-# Remove all produced files, including intermediate caches and figures.
-purge: clean
+
+purge: clean  ## Remove all produced files, including intermediate caches and figures.
 	rm -rf _bookdown_files/

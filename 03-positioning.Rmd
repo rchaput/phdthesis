@@ -72,11 +72,29 @@ In this section, we take a step back on the technical aspect of producing "ethic
 The ultimate goal is to have a satisfying "ethical outcome" of the system, in terms of both its resulting behaviour, i.e., the actions it proposes or takes, and also how the system functions, i.e., which inputs it takes, what resources the computation requires, etc.
 
 We have mentioned in the previous section that the general framework of this thesis is a Socio-Technical System (STS), in which we want to give the control back to the humans.
+This focus on STS when talking about AI and ethics has been championed by several researchers.
+@stahl2022computer, notably, describes the discourses on computer ethics, and ethics of AI, and proposes to move towards *ethics of digital ecosystems*, instead of focusing on specific artefacts.
+This notion of ecosystems is a metaphor that refers to socio-technical systems in which AI systems and humans interact with each other; as they mention:
+
+> Ethical, social, human rights and other issues never arise from a technology per se, however, but result from the use of technologies by humans in societal, organisational and other setting. [@stahl2022computer, p.72]
+
+In other words, AI systems should not be considered "alone", but rather as a part of a more complex system incorporating humans.
+By focusing on STS, they hope to be able to explore and discover ethical issues related to new technologies, including but not limited to AI, and without the need to clearly define what AI is.
+In a similar vein, although they primarily focus on trustworthiness and legitimacy instead of ethics, @whitworth2003legitimate propose to take into account users' requirements and concerns, such as privacy, and other ethics-related issues, directly into the design of STS.
+
 To be ethically aligned with our ethical considerations, AI systems need to be guided.
 This guidance necessarily comes from humans, as ethics is, for now at least, a privilege of humans.
 The ethical considerations, through this guidance, are "injected" into systems, and we name this an *ethical injection*.
 This injection can take multiple forms, depending on the considered AI system, e.g., it can be part of the data, when we talk about supervised learning, or directly implemented as part of an algorithm's safeguards, or part of a learning signal, etc.
 This notion of ethical injection builds, among other things, upon the principles of STS, according to which it is important that the system incorporates human concerns.
+
+From this description of the "ethical injection", we can see that it relates to the already mentioned "Value Alignment Problem".
+This problem has been described by many researchers, including moral philosophers and computer scientists, see, e.g., [@gabriel2020AIValuesAlignment; @russell2021HumanCompatibleAI].
+It mainly refers to 2 important concerns when building an AI system: first, we humans must correctly articulate the objective(s) that we want the system to solve.
+For example, proxy objectives may be used to simplify the definition of the true objectives, however we risk getting a behaviour that solves only the proxy objectives, and not the true ones.
+Secondly, the system must solve these objectives while not taking any action that would contradict our values.
+For example, reducing the emission of greenhouse gaz by killing all of humanity is not an acceptable solution.
+In our framework, the "ethical injection" is the technical way of incorporating these ethical considerations, both the true objectives and the values that should not be contradicted, into the AI system.
 
 In order to make an AI system more beneficial for us, it should include the moral values that we want the system to be aligned with.
 Several works have proposed, notably, *principles* that AI systems should follow in order to be beneficial [@jobin2019GlobalLandscapeAI].
@@ -97,7 +115,7 @@ Finally, in a learning system, the choice of the training data will also be impo
 
 Reaching this common ground is not trivial, as participants may come from different domains.
 Yet, it is crucial, because design choices shape the way the system works, and some of them have ethical consequences.
-The various ways and loci of ethical injection should thus be discussed collectively: to do so, the AI system needs to be simplified, so that the discussion can focus on the important aspects, without being diverted by details.
+The various ways and *loci* of ethical injection should thus be discussed collectively: to do so, the AI system needs to be simplified, so that the discussion can focus on the important aspects, without being diverted by details.
 Still, it should not be too much simplified, otherwise we would risk obtaining a wrong mental model of the system.
 For example, simplifying too much the idea of a physical machine, e.g., when talking about Cloud-based solutions, would make participants forget about the physical impact of computation, in terms of resources (energy, space, etc.).
 Simplifying too much about AI systems' capabilities could raise false hopes, or make them believe that the system is never wrong.
@@ -105,7 +123,9 @@ Presenting the correct level of simplification, i.e., neither too little nor noo
 
 Figure \@ref(fig:ethical-model) represents an agnostic system in interaction with a human society.
 The diverse arrows, such as "construct computational structure", "construct input", "produce input", etc., all represent potential *loci* of ethical injection.
-On the left side of the figure, humans with various roles, e.g., designers, users, or stakeholders, discuss and interact with the system.
+On the left side of the figure, humans with various roles, e.g., designers, users, or stakeholders, discuss and interact with the system, on the right side.
+The "interface" represents the way the system can communicate with the external world, which includes our human society; the interface is composed of inputs and outputs, of which the structure is chosen by the humans.
+Inputs, in particular may also be produced by humans, e.g., datasets.
 
 ```{drawio ethical-model, src = "figure/ethical_model.drawio", out.width = "90%"}
 #| fig.cap: >
@@ -181,10 +201,30 @@ In this case, which we call a dilemma, although not in the "thought experiment" 
 
 ### Definition {#positioning-smartgrid-definition}
 
-As Smart Grids are a vivid research domain, there may not be a unique type of Smart Grid.
-However, one of the major differences between *smart* and "*non-smart*" grids is the addition of various technologies, in order to improve and extend the grid's functionalities.
+As Smart Grids are a vivid research domain, there are several definitions of a Smart Grid, and more generally, Smart Energy Systems.
+@hadjsaid2013smartGrids note that these definitions depend on the priorities of actors behind the development of these grids, such as the European Union, the United States of America, or China.
+We propose to focus on the EU's definition [@eg1eutfsg2010functionalitiesSmartGrids] in order to highlight one of the major differences between *smart* and "*non-smart*" grids:
+
+::: {.definition #SmartGrid name="Smart Grid"}
+A Smart Grid is an electricity network that can cost efficiently integrate the behaviour and actions of all users connected to it – generators, consumers and those that do both – in order to ensure economically efficient, sustainable power system with low losses and high levels of quality and security of supply and safety.
+Though elements of smartness also exist in many parts of existing grids, the difference between a today’s grid and a smart grid of the future is mainly the grid’s capability to handle more complexity than today in an efficient and effective way.
+A smart grid employs innovative products and services together with intelligent monitoring, control, communication, and self-healing technologies in order to:
+
+- Better facilitate the connection and operation of generators of all sizes and technologies.
+- Allow consumers to play a part in optimising the operation of the system.
+- Provide consumers with greater information and options for how they use their supply.
+- Significantly reduce the environmental impact of the whole electricity supply system.
+- Maintain or even improve the existing high levels of system reliability, quality and security of supply.
+- Maintain and improve the existing services efficiently.
+- Foster market integration towards European integrated market.
+
+[@eg1eutfsg2010functionalitiesSmartGrids, p.6]
+:::
+
+As can be seen in definition \@ref(def:SmartGrid), *smart grids* add various technologies ("innovative products and services"), in order to improve and extend the grid's functionalities.
 For example, instead of being mere consumers of energy, the introduction of solar panels allow the grid's participants to become *prosumers*, i.e., both producers and consumers.
 In this case, they gain the ability to truly participate in the grid's energy dynamics by exchanging energy with the grid, and thus other prosumers, in a two-way manner.
+We refer the interested reader to @yu2011newFrontierSmartGrids and @hadjsaid2013smartGrids for more details on Smart Grids, their definitions, and challenges.
 
 Multiple ethical issues have been identified in Smart Grids [@tally2019Smart], such as: health, privacy, security, affordability, equity, sustainability.
 Some of them can be addressed at the grid conception level, e.g., privacy and security by making sound algorithms, health by determining the toxicity of exposition to certain materials, and limiting such exposition if necessary.
