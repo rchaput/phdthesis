@@ -154,7 +154,7 @@ In contrast with the original DecPOMDP as described by Bernstein [@bernstein2002
 
 ```{definition decpomdp, name="DecPOMDP"}
 A Decentralized Partially-Observable Markovian Decision Process is a tuple
-$\left\langle \mathbb{L}, \mathbb{S}, \mathbb{A}, \texttt{T}, \mathbb{O}, \texttt{O}, \texttt{R}, \gamma \right\rangle$,
+$\left\langle \LAgts, \StateSpace, \ActionSpace, \texttt{T}, \ObsSpace, \texttt{O}, \RewardFn, \gamma \right\rangle$,
 where:
 
 - $\LAgts$ is the set of learning agents, of size $n = \length{\LAgts}$.
@@ -662,7 +662,7 @@ tribble(
 
 ### Comparing algorithms
 
-```{python learning1-results-compare, out.width = "100%", fig.pos = "!h"}
+```{python learning1-results-compare, out.width = "100%", fig.pos = "!ht"}
 #| fig.cap: >
 #|   Distribution of scores per learning algorithm, on every scenario, for 10
 #|   runs with each reward function.

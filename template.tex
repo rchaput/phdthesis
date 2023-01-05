@@ -7,7 +7,7 @@
 % Document Class Definition
 % **************************************************
 \documentclass[%
-    paper=A4,               % paper size --> A4 is default in Germany
+    paper=A4,               % paper size
     twoside=true,           % onesite or twoside printing
     openright,              % doublepage cleaning ends up right side
     parskip=half,           % spacing value / method for paragraphs
@@ -15,7 +15,7 @@
     11pt,                   % font size
     headings=normal,        % size of headings
     bibliography=totoc,     % include bib in toc
-    listof=totoc,           % include listof entries in toc
+    listof=notoc,           % include listof entries in toc
     titlepage=on,           % own page for each title page
     captions=tableabove,    % display table captions above the float env
     chapterprefix=false,    % do not display a prefix for chapters
@@ -86,6 +86,9 @@
 % **************************************************
 % Other Packages
 % **************************************************
+% We disable the setspace hack, as it produces warnings
+% (potentially unsupported setspace version).
+\PassOptionsToPackage{setspace=false}{scrhack}
 \usepackage{scrhack}
 
 \usepackage{graphicx,latexsym}
@@ -300,23 +303,30 @@ $endif$
 
 % Abstract
 $if(abstract)$
+  \phantomsection
+%  \addcontentsline{toc}{section}{Abstract}
   \pdfbookmark[1]{Abstract}{Abstract}
   \addchap*{Abstract}
   \label{sec:abstract}
   $abstract$
+  \cleardoublepage
 $endif$
 
 $if(abstract_fr)$
+  \phantomsection
+%  \addcontentsline{toc}{section}{Résumé (Fr)}
   % We must use \detokenize because of the special characters
   \pdfbookmark[1]{Résumé (Fr)}{\detokenize{Résumé (Fr)}}
   \addchap*{Résumé (Fr)}
 %  {\usekomafont{chapter}Résumé (Fr)}
   \label{sec:abstract-fr}
   $abstract_fr$
+  \cleardoublepage
 $endif$
-\cleardoublepage
 
 $if(summary_fr)$
+  \phantomsection
+%  \addcontentsline{toc}{section}{Résumé substantiel}
   % We must use \detokenize because of the special characters
   \pdfbookmark[1]{Résumé substantiel}{\detokenize{Résumé substantiel}}
   \addchap*{Résumé substantiel}
@@ -327,6 +337,8 @@ $endif$
 
 % Acknowledgments
 $if(acknowledgements)$
+  \phantomsection
+%  \addcontentsline{toc}{section}{Acknowledgments}
   \pdfbookmark[1]{Acknowledgments}{Acknowledgments}
   \addchap*{Acknowledgments}
   \label{sec:acknowledgments}
@@ -336,6 +348,8 @@ $endif$
 
 % Preface
 $if(preface)$
+  \phantomsection
+%  \addcontentsline{toc}{section}{Preface}
   \pdfbookmark[1]{Preface}{Preface}
   \addchap*{Preface}
   \label{sec:preface}
@@ -345,6 +359,8 @@ $endif$
 
 % Dedication
 $if(dedication)$
+  \phantomsection
+%  \addcontentsline{toc}{section}{Dedication}
   \pdfbookmark[1]{Dedication}{Dedication}
   \addchap*{Dedication}
   \label{sec:dedication}
@@ -363,15 +379,24 @@ $endif$
 \currentpdfbookmark{\contentsname}{toc}
 \setcounter{tocdepth}{2}		% define depth of toc
   \tableofcontents				% display table of contents
+
+  \cleardoublepage
+  \phantomsection
+  \addcontentsline{toc}{section}{List of Figures}
   \listoffigures
+
+  \cleardoublepage
+  \phantomsection
+  \addcontentsline{toc}{section}{List of Tables}
   \listoftables
+
   % Note: `\listofalgorithms` does not create a bookmark nor a line in the ToC.
   % We add one ourselves by using `\addcontentsline`. However, this line must
   % correspond to the beginning of the page on which the List of Algorithms
   % appear: `\cleardoublepage` and `\phantomsection` are used to do this.
   \cleardoublepage
   \phantomsection
-  \addcontentsline{toc}{chapter}{List of Algorithms}
+  \addcontentsline{toc}{section}{List of Algorithms}
   \listofalgorithms
 % Revert the ToC level to 0
 \makeatletter

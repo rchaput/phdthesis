@@ -125,7 +125,7 @@ We describe how we leverage this for our proposed model in the next section.
 
 We now describe the Logic-based Agents for JudgIng Morally-embedded Actions (LAJIMA) model, which is represented in Figure \@ref(fig:judgments-logic-process-schema).
 Each judging agent contains an explicit moral value (VS) and associated moral rules (MR).
-They receive observations ($\mathbf{o_l}$) that are transformed into beliefs ($\mathcal{B}$), and actions ($\mathbf{a_l}$) that are similarly transformed into symbols ($\mathcal{A}$).
+They receive observations ($\mathbf{o_l}$) that are transformed into beliefs ($\Beliefs$), and actions ($\mathbf{a_l}$) that are similarly transformed into symbols ($\mathcal{A}$).
 Their judgment process relies on a moral evaluation function ($\ME$) for each of the actions component $a_{l,1}, a_{l,2}, \cdots, a_{l,d}$.
 The moral evaluation function leverages the moral value (VS) and moral rules (MR) to do so.
 Symbolic moral evaluations compose the judgment of each judging agent $j$, which is later transformed into a numeric feedback through the $\Feedback$ function.
@@ -219,7 +219,7 @@ Let $d=3$ the size of an action vector, $l$ be a learning agent, and $j_1, j_2$ 
 To simplify the notation, we have $\mathbf{B} = \texttt{beliefs}(\mathbf{o_l})$.
 Assume the judgments received by $l$ is
 \begin{align*}
-  & \left\{ \texttt{Judgment}_{j_1}(l), \texttt{Judgment}_{j_2}(l) \right \} \\
+  & \left\{ \Judgment_{j_1}(l), \Judgment_{j_2}(l) \right \} \\
   &= \left\{ \left\{ \texttt{ME}_{j_1}(\mathbf{B}, a_{l,1}), \texttt{ME}_{j_1}(\mathbf{B}, a_{l,2}), \texttt{ME}_{j_1}(\mathbf{B}, a_{l,3}) \right\}, \left\{ \texttt{ME}_{j_2}(\mathbf{B}, a_{l,1}), \texttt{ME}_{j_2}(\mathbf{B}, a_{l,2}), \texttt{ME}_{j_2}(\mathbf{B}, a_{l,3}) \right\} \right\} \\
   &= \left\{ \left\{ moral, neutral, neutral \right\}, \left\{ immoral, immoral, moral \right \} \right\}
 \end{align*}
@@ -248,8 +248,8 @@ Then, to solve the conflicts between judges, and produce a single reward for all
 
 :::{.example #feedback-result}
 We reuse the same judgments from example \@ref(exm:judgments-result):
-$\texttt{Judgment}_{j_1}(l) =$ $\left\{ moral, neutral, neutral \right\}$, and
-$\texttt{Judgment}_{j_2}(l) = \left\{ immoral, immoral, moral \right \}$.
+$\Judgment_{j_1}(l) =$ $\left\{ moral, neutral, neutral \right\}$, and
+$\Judgment_{j_2}(l) = \left\{ immoral, immoral, moral \right \}$.
 The first judgment contains $1$ moral valuation, and $0$ immoral; thus, the resulting number is $\frac{1}{1+0} = 1$.
 On the other hand, the second judgment contains $1$ moral valuation but $2$ immoral valuations; thus, its resulting number is $\frac{1}{1+2} = \frac{1}{3}$.
 In other words, $\mathbf{f_l} =$
@@ -472,7 +472,7 @@ Thanks to $\epsilon_j$, the judgment acts as if the third argument was simply no
 
 In the current definition, the $\epsilon_j$ function assumes that judging agents have full knowledge about the world's state $s$.
 This allows comparing the learning agent to other agents, e.g., for the average consumption, which we cannot access if we only have the learning agent's observations $\mathbf{o_l}$.
-This assumption can be lifted by changing the definition of $\epsilon_j$ to take $\mathbb{O}_l$ as domain; however, this would limit the available arguments, and thus the judgment as a whole.
+This assumption can be lifted by changing the definition of $\epsilon_j$ to take $\ObsSpace_l$ as domain; however, this would limit the available arguments, and thus the judgment as a whole.
 
 The world's state $s$ consists of data from the true environment's state and the agents' actions.
 This represents some sort of very limited history, with the world state containing both the action itself and its consequences.
@@ -532,9 +532,9 @@ The figure shows the process for a single learning agent, which is then repeated
       \tcc{Compute sub-AFJD}
       $AF' \gets \epsilon_j(AF_j, l, s)$\;
       \tcc{Compute grounded extension}
-      $\mathit{grd} \gets \texttt{grounded}(AF')$\;
+      $\grd \gets \texttt{grounded}(AF')$\;
       \tcc{Compute reward through the $\Fp$ and $\Fc$}
-      $\texttt{F}(l)_j \gets \Jj(\mathit{grd})$\;
+      $\texttt{F}(l)_j \gets \Jj(\grd)$\;
     }
     \tcc{Agregate judgments into a single reward}
     $r_l \gets \gagr \left( \left\{ \forall f_{l,j} \in \texttt{F}(l) \right\} \right)$\;
@@ -768,7 +768,7 @@ As for the previous chapter, the *score* here is defined as the average global r
 Figure \@ref(fig:judgments-results-logic-scores) shows the results for the experiments on each scenario.
 Results show that, on most scenarii, Q-SOM and Q-DSOM algorithms perform similarly, except on the *env_sustain* mono-value configuration, i.e., when only the judge associated to the Environmental Sustainability value is activated.
 
-```{python judgments-results-logic-scores, out.width = "100%", fig.pos = "!h"}
+```{python judgments-results-logic-scores, out.width = "100%", fig.pos = "!ht"}
 #| fig.cap: >
 #|   Results of the learning algorithms on 10 runs for each scenario, when
 #|   using the LAJIMA agents.
@@ -814,7 +814,7 @@ This means that the judgment functions offer a good enough gradient to allow lea
 
 (ref:python-judgments-results-argumentation-scores-caption) Results of the learning algorithms on 10 runs for each scenario, when using the argumentation-based judging agents. To simplify the plot, *Scn* (Scenario) regroups EnvironmentSize and ConsumptionProfile; *Fcts* (Functions) combines the choice of judgment and aggregation functions.
 
-```{python judgments-results-argumentation-scores, out.width = "100%", fig.cap="(ref:python-judgments-results-argumentation-scores-caption)", fig.pos = "!h"}
+```{python judgments-results-argumentation-scores, out.width = "100%", fig.cap="(ref:python-judgments-results-argumentation-scores-caption)", fig.pos = "!ht"}
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns

@@ -120,6 +120,9 @@ options(width = 70)
 reticulate::use_virtualenv(file.path(getwd(), ".venv"))
 # Ignore fonts in flextable (needs to use xelatex otherwise)
 flextable::set_flextable_defaults(fonts_ignore = TRUE)
+# Set the number of LaTeX compilations; this seems necessary to correctly
+# build the Table of Contents. Without it, wrong page numbers are used.
+options(tinytex.compile.min_times = 3)
 ```
 
 ```{python setup-python}

@@ -159,13 +159,13 @@ Additionally, as different exploration profiles will learn differently, notably 
 ::: {.definition #dilemmas-exploration-profile name="Exploration profile"}
 An exploration profile $p \in \mathbb{P}$ is defined as the following data structures and functions:
 
-* State-(D)SOM: the "map" of situations to discrete states, which contains a fixed number of neurons, and thus of possible states. We define the set of possible states identifiers as $\mathcal{S} = [[0, \cdots, \length{\mathbf{U}}]]$, where $\length{\mathbf{U}}$ is the number of neurons.
-  * $\texttt{States}_p : \mathbb{O} \rightarrow \mathcal{S}$ is the function that returns a discrete state identifier for any observation vector, based on the profile $p$.
-* Action-(D)SOM: the "map" of action identifiers to action parameters, which also contains a fixed number of neurons, and thus of possible actions. The set of possible action identifiers is $\mathcal{A} = [[0, \cdots, \length{\mathbf{W}}]]$, where $\length{\mathbf{W}}$ is the number of neurons. Each neuron is associated to a prototype vector, which is the action's parameters.
-  * $\texttt{Actions}_p : \mathcal{A} \rightarrow \mathbb{A}_l$ is the function that returns the action's parameters for a learning agent $l$ from an action discrete identifier in profile $p$.
+* State-(D)SOM: the "map" of situations to discrete states, which contains a fixed number of neurons, and thus of possible states. We define the set of possible states identifiers as $\DiscreteStates = [[0, \cdots, \length{\mathbf{U}}]]$, where $\length{\mathbf{U}}$ is the number of neurons.
+  * $\StateFn_p : \ObsSpace \rightarrow \DiscreteStates$ is the function that returns a discrete state identifier for any observation vector, based on the profile $p$.
+* Action-(D)SOM: the "map" of action identifiers to action parameters, which also contains a fixed number of neurons, and thus of possible actions. The set of possible action identifiers is $\DiscreteActions = [[0, \cdots, \length{\mathbf{W}}]]$, where $\length{\mathbf{W}}$ is the number of neurons. Each neuron is associated to a prototype vector, which is the action's parameters.
+  * $\ActionFn_p : \DiscreteActions \rightarrow \ActionSpace_l$ is the function that returns the action's parameters for a learning agent $l$ from an action discrete identifier in profile $p$.
 * Q-Table: the 3-dimensional table that learns and memorizes the interests of each (discrete) action identifier in each (discrete) state identifier. The interests are themselves a vector, indexed by the moral values.
-  * $\texttt{Q}_p : \mathcal{S} \times \mathcal{A} \rightarrow \mathbb{R}^m$ is the function that returns these interests for an action $a$ in profile $p$, in a state $s$, where $m$ is the number of moral values.
-* $\rho$ : the weights used to scalarize rewards and interests to determine whether a perturbed action is interesting, a vector $\in \mathbb{R}^m$.
+  * $\Q_p : \DiscreteStates \times \DiscreteActions \rightarrow \RR^m$ is the function that returns these interests for an action $a$ in profile $p$, in a state $s$, where $m$ is the number of moral values.
+* $\rho$ : the weights used to scalarize rewards and interests to determine whether a perturbed action is interesting, a vector $\in \RR^m$.
 :::
 
 We note that, contrary to existing approaches that use scalarization at some point, our exploration profiles are only used to explore, and never to choose an action.
@@ -234,7 +234,7 @@ An action is unsatisfactory if there is another action with a higher interest on
 
 This definition takes into account the fact that actions have continuous interests, and we always have a choice between at least 2 actions, provided that the number of neurons in the Action-(D)SOM is greater than or equal to 2, or that there are at least 2 exploration profiles.
 It echoes the notion of *regret* also mentioned by Bonnemains.
-For example, considering an action $a_1$ with interests $\texttt{Q}(s, a_1) = [0.5, 0.5]$ and another action $a_2$ with interests $\texttt{Q}(s, a_2) = [1, 0]$, we can say that taking action $a_1$ would result in a regret with respect to the first moral value, as $a_2$ would have yielded a better result.
+For example, considering an action $a_1$ with interests $\Q(s, a_1) = [0.5, 0.5]$ and another action $a_2$ with interests $\Q(s, a_2) = [1, 0]$, we can say that taking action $a_1$ would result in a regret with respect to the first moral value, as $a_2$ would have yielded a better result.
 Conversely, taking $a_2$ would result in a regret with respect to the second moral value, as $a_1$ would have yielded a better result.
 Thus, for each of these actions, there is "another action with a higher interest on at least one dimension": if these are the only possible actions, the situation is a dilemma.
 
@@ -463,7 +463,7 @@ However, this updated algorithm differs on 2 aspects:
 
 2) In addition to the Q-Values, which are updated using Equation \@ref(eq:bellman-morl), the Q-theoretical values are updated thanks to Equation \@ref(eq:theoretical-bellman-update) (line 20).
 
-```{algorithm dilemmas-bootstrap-algorithm, fig.cap = "Learning process during the bootstrap phase", fig.pos = "!h"}
+```{algorithm dilemmas-bootstrap-algorithm, fig.cap = "Learning process during the bootstrap phase", fig.pos = "!ht"}
 \newcommand\mycommfont[1]{\footnotesize\ttfamily\textcolor{gray}{#1}}
 \SetCommentSty{mycommfont}
 \DontPrintSemicolon
@@ -515,6 +515,8 @@ However, this updated algorithm differs on 2 aspects:
 }
 ```
 
+`r if(knitr:::is_latex_output()) '\\clearpage'`
+
 ### Deployment phase
 
 On the other hand, Algorithm \@ref(fig:dilemmas-deployment-algorithm) describes the process in the deployment phase.
@@ -532,6 +534,8 @@ We filter the proposed actions to remove those which have too similar parameters
 For example, $\left[1, 1, 1, 1, 1, 1\right]$ and $\left[0.99, 0.98, 0.99, 0.99, 0.99, 1\right]$ have less than 3% difference on each dimension, and thus one of them will be removed.
 Finally, the association of this context to the selected action is memorized (line 23), so that it may be re-used in future time steps.
 The selected action (whether from an existing or a new context) is executed in the environment (line 25).
+
+`r if(knitr:::is_latex_output()) '\\clearpage'`
 
 ```{algorithm dilemmas-deployment-algorithm, fig.cap = "Decision process during the deployment phase", fig.pos = "H"}
 \newcommand\mycommfont[1]{\footnotesize\ttfamily\textcolor{gray}{#1}}
@@ -596,6 +600,8 @@ The selected action (whether from an existing or a new context) is executed in t
   }
 }
 ```
+
+`r if(knitr:::is_latex_output()) '\\clearpage'`
 
 ## Experiments {#dilemmas-experiments}
 
