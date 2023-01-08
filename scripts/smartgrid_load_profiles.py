@@ -19,7 +19,6 @@ import pandas as pd
 
 
 data_folder = Path(__file__).parent / '..' / 'data'
-# data_folder = os.path.join(os.path.dirname(__file__), os.pardir, 'data')
 
 AgentProfile = namedtuple('AgentProfile', ['needs', 'action_limit', 'max_storage'])
 
@@ -31,12 +30,3 @@ def load_agent_profile(filename: str):
     action_limit = profile['action_limit'][0]
     max_storage = profile['max_storage'][0]
     return AgentProfile(needs, action_limit, max_storage)
-
-
-def create_needs_dataset(household: AgentProfile,
-                         office: AgentProfile,
-                         school: AgentProfile):
-    dates = pd.date_range('2018-01-01', period=24*365, freq='H')
-    df_household = pd.Series(household.needs, index=dates).reset_index()
-    df_household['Profile'] = 'Household'
-    df_office = pd.Series()
