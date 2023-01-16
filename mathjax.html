@@ -4,22 +4,57 @@
     TeX: {
       Macros: {
         argmin: "\\mathop{\\mathrm{argmin}}",
-        norm: "\\left\\|#1\\right\\|",
+
+        RR: "\\mathbb{R}",
+
+        length: ["\\vert#1\\vert", 1],
+        norm: ["\\left\\|#1\\right\\|", 1],
+
+        StateSpace: "\\mathbb{S}",
+        ObsSpace: "\\mathbb{O}",
+        ActionSpace: "\\mathbb{A}",
+        Q: "\\texttt{Q}",
+        V: "\\texttt{V}",
+        pos: "\\texttt{P}",
+        RewardFn: "\\texttt{R}",
+
+        LAgts: "\\mathcal{L}",
+
+        Beliefs: "\\mathcal{B}",
+        ME: "\\texttt{ME}",
+        Feedback: "\\texttt{F}",
+        BeliefSpace: "\\mathbb{B}",
+        ValSpace: "\\mathcal{V}",
+        Judgment: "\\texttt{Judgment}",
+        moral: "\\mathit{moral}",
+        immoral: "\\mathit{immoral}",
+        neutral: "\\mathit{neutral}",
+
+        JAgts: "\\mathcal{J}",
         Args: "\\mathcal{A}rgs",
         Att: "\\mathcal{A}tt",
         Fp: "\\mathcal{F}_p",
         Fc: "\\mathcal{F}_c",
         SA: "\\mathcal{SA}rgs",
-        JAgts: "\\mathcal{J}",
-        LAgts: "\\mathcal{L}",
         Jj: "\\mathtt{J}_j",
         gagr: "\\mathtt{g_{agr}}",
-        States: "\\mathcal{S}",
-        FpInGrd: "\\mathit{grd}_{[\\Fp]}",
-        FcInGrd: "\\mathit{grd}_{[\\Fc]}",
+        grd: "\\mathit{grd}",
+        FpInGrd: "\\grd_{[\\Fp]}",
+        FcInGrd: "\\grd_{[\\Fc]}",
         FpTotal: "AF_{[\\Fp]}",
         FcTotal: "AF_{[\\Fc]}",
-        length: "\\vert#1\\vert"
+
+        gPareto: ">_{Pareto}",
+        Profiles: "\\mathcal{P}",
+        DiscreteStates: "\\mathcal{S}",
+        StateFn: "\\texttt{States}",
+        DiscreteActions: "\\mathcal{A}",
+        ActionFn: "\\texttt{Actions}",
+        PFFn: "\\texttt{PF}",
+        ThresholdSpace: "\\mathbb{Z}",
+        optimal: "\\mathit{optimal}",
+        ContextFn: "\\texttt{Content}",
+        Contexts: "\\mathcal{C}"
       }
     }
   });
