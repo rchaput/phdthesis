@@ -28,7 +28,7 @@ The task thus becomes: how to judge proposed actions and send an appropriate rew
 This is in line with our second research question: (ref:rq2)
 
 Traditionally, most reinforcement learning algorithms use some sort of mathematical functions to compute the rewards, as we did in the previous chapter.
-This seems rather intuitive, since the learning algorithm expects a real number, and thus reward function usually output real numbers.
+This seems rather intuitive, since the learning algorithm expects a real number, and thus reward functions usually output real numbers.
 However, such mathematical functions also entail disadvantages.
 
 The first point is their difficulty to be understandable, especially to non-AI experts, such as external regulators, domain experts, lay users, ...
@@ -360,7 +360,7 @@ An Argumentation Framework for Judging a Decision (AFJD) is defined as a tuple:
 
 $AF = \left\langle \Args, \Att, \Fp, \Fc \right\rangle$, where:
 
-* $\Args$ is a non-empty set of arguments. An argument is represented by a name, and has an aliveness condition function. This function is defined as $\texttt{alive} : \StateSpace \rightarrow \mathbb{B}$, where $\StateSpace$ is the space of world states, and $\mathbb{B} = {0, 1}$ is the set of boolean values. It determines whether the argument can be considered "true" in the current state of the world, or "false", in which case the argument is ignored.
+* $\Args$ is a non-empty set of arguments. An argument is represented by a name, and has an aliveness condition function. This function is defined as $\texttt{alive} : \StateSpace \rightarrow \mathbb{B}$, where $\StateSpace$ is the space of world states, and $\mathbb{B} = \left\{0, 1\right\}$ is the set of boolean values. It determines whether the argument can be considered "true" in the current state of the world, or "false", in which case the argument is ignored.
 * $\Att$ is a binary relation named the attack relation, defined on pairs of arguments, such that $A \mathbin{\Att} B$ means that argument $A$ attacks argument $B$.
 * $\Fp \in 2^{\Args}$ (for *pros*) is the set of pro-arguments, which indicate that the currently judged action was a moral one.
 * $\Fc \in 2^{\Args}$ (for *cons*) is the set of con-arguments, which indicate that the currently judged action was an immoral one.
@@ -377,7 +377,7 @@ Formally, we call this filtered graph a "sub-AFJD", i.e., an AFJD which is some 
 We thus define the set of all possible sub-AFJD as:
 
 \begin{align*}
-    \mathcal{P}(AF)  := \{ \left\langle \Args',\Att', \Fp', \Fc' \right\rangle : & \Args' \subseteq AF_{[\Args]}, & \\
+    \mathcal{P}(AF)  := \{ \left\langle \Args',\Att', \Fp', \Fc' \right\rangle : \quad & \Args' \subseteq AF_{[\Args]}, & \\
     & \Att' \subseteq \Args'^{2} \cap AF_{[\Att]}, & \\
     & \Fp' \subseteq \Args' \cap AF_{[\Fp]}, & \\
     & \Fc' \subseteq \Args' \cap AF_{[\Fc]} & \}
@@ -399,7 +399,7 @@ Thus, if we ignore $arg_2$, can we keep $arg_1$ as well?
 In argumentation theory, this problem is known as defining *acceptability*.
 An argument that is inacceptable should not be taken into account by the judge, contrary to an acceptable argument.
 Acceptability is often based on the notion of conflictness between arguments.
-The following definitions, *conflict-freeness* and *acceptability*, are paraphrased from @dung1995acceptability[p.6]
+The following definitions, *conflict-freeness* and *acceptability*, are paraphrased from @dung1995acceptability[p.6].
 
 ::: {.definition #conflictfreeness name="Conflict-freeness"}
 Let $\Args$ be a set of arguments, and $\Att$ be an attack relationship on $\Args$.
@@ -854,7 +854,7 @@ This is confirmed by a Wilcoxon test, using the "greater" alternative (p-value =
 ## Discussion {#judgments-discussion}
 
 In this chapter, we presented a new line of research for constructing reward functions, through the use of symbolic judgment.
-More specifically, we propose to introduce new judging agents to the multi-agent system, which judge the behaviour of the learning agents to compute their rewards, by leveraging symbolic reasoning, through either logic-based rules or argumentation frameworks.
+More specifically, we proposed to introduce new judging agents to the multi-agent system, which judge the behaviour of the learning agents to compute their rewards, by leveraging symbolic reasoning, through either logic-based rules or argumentation frameworks.
 To the best of our knowledge, this line of research has not been studied, especially within Machine Ethics.
 
 We recall that the principal objectives we identified from the state of the art were:
@@ -989,7 +989,7 @@ We note that, by aggregating the moral values, we settle potential dilemmas *a p
 This prevents the learning agents from correctly handling these dilemmas, and even recognizing there was a dilemma in the first place.
 We will therefore, in the next chapter, explore this 2nd family of ideas, which leads to a multi-objective approach for the learning algorithm.
 Scalarizing was necessary as a first step, in order to evaluate the contribution of agentifying the reward function and leveraging symbolic judgments on its own.
-Then, we will "open up the box", by sending directly multiple rewards, one for each moral value, to each learning agent.
+Then, we "open up the box", by sending directly multiple rewards, one for each moral value, to each learning agent.
 This way, they can compare the rewards, recognize situations of dilemmas, and each learning agent can settle dilemmas in a different way, depending on both the context and their user's preferences.
 For example, user A may favor the inclusiveness value, and thus the learning agent will choose actions that yield maximal rewards for this value when it cannot optimize all of them.
 Another user, B, may favor on contrary the affordability value, and thus its own learning agent will learn differently from user A's agent.

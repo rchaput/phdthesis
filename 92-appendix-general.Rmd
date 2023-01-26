@@ -15,7 +15,7 @@ $\length{X}$ : depending on the context, either the cardinality of a set $X$, or
 
 $\LAgts$ : the set of learning agents.
 
-$\ActionSpace_l$ : the action space of a learning agent $l$, typically $\\ActionSpace_l \subseteq \\RR^d$.
+$\ActionSpace_l$ : the action space of a learning agent $l$, typically $\ActionSpace_l \subseteq \RR^d$.
 
 $d$ : number of dimensions of the agent's action space.
 

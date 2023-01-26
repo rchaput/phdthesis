@@ -333,7 +333,7 @@ There are several challenges in RL, of which one of the most known and perhaps i
 To illustrate this challenge, let us consider the k-armed bandit example [@berry1985bandit]:
 
 ::: {.example #exploration-exploitation name="The k-armed bandit"}
-A RL agent is facing a set of $k$ gambling machines, or "one-armed bandit", which is often referred to as a $k$-armed bandit.
+A RL agent is facing a set of $k$ gambling machines, or "one-armed bandits", which is often referred to as a $k$-armed bandit.
 Each of the bandits has a probability distribution of rewards, or payoffs, which the agent does not know, and must discover.
 The goal of the agent is to gain as much as possible, in a limited number of steps, by choosing a gambling machine at each step.
 The agent must therefore *explore*, i.e., try to select a gambling machine to receive a reward.
@@ -361,7 +361,7 @@ The *Q-Value* $\Q(s,a)$ is thus defined as the interest of the state-action pair
 Additionally, the value of a state as a whole is defined as $\V(s) = max_{a} \Q(s,a)$.
 
 Based on these definitions, the agent is able to learn the Q-Table by iteratively collecting experiences from the environment, in the form of $\left\langle s, a, s', r \right\rangle$ tuples, updating the interest $\Q(s,a)$ based on both the short-term reward $r$, and the long-term interest $\V(s')$ of arriving in state $s'$.
-Mathematically, this can be solved through dynamic programming, by applying the Bellman equation on the Q-Values:
+Mathematically, this can be solved through dynamic programming, by applying the Bellman equation on the Q-Values [@bellman]:
 
 \begin{equation}
   \Q_{t+1}(s_t,a_t) \leftarrow \alpha \left[r_t + \gamma \max_{a'} \Q_{t}(s_{t+1},a') \right] + (1 - \alpha)\Q_{t}(s_t,a_t)
@@ -442,7 +442,7 @@ It is computed as follows:
   (\#eq:difference-rewards)
 \end{equation}
 
-where $\texttt{D}_i(z)$ is the reward of an agent $i$, based on the context $z$, which is both the state and the joint-action of all agents in the environment; $\texttt{G}(z)$ is the global reward for the context $z$, and $G(z_{-i})$ is an hypothetical reward, which would have been given to the team, if the agent $i$ had not acted in the environment.
+where $\texttt{D}_i(z)$ is the reward of an agent $i$, based on the context $z$, which is both the state and the joint-action of all agents in the environment; $\texttt{G}(z)$ is the global reward for the context $z$, and $\texttt{G}(z_{-i})$ is an hypothetical reward, which would have been given to the team, if the agent $i$ had not acted in the environment.
 In other words, if the current environment is better than the hypothetical one, this means the agent's action has improved the environment.
 It should be rewarded positively so as to reinforce its good behaviour.
 As $\texttt{G}(z) > \texttt{G}(z_{-i})$, the reward will effectively be positive.
@@ -494,7 +494,7 @@ Finally, the *type of problems* that the algorithm is designed for.
 Most of these types are inspired from the Game Theory field, hence the use of the "opponent" vocabulary, including:
 *One-Shot Games* (OSG), that take place only once, in a single situation, e.g., the well-known Prisoner's Dilemma;
 *Repeated Games* (RG), which repeat a single situation over and over, e.g., the Iterated Prisoner's Dilemma;
-*Multi-Armed* Bandit scenarios (MAB), which we have already mentioned, and which do not necessarily involve the description of a situation;
+*Multi-Armed* Bandit scenarii (MAB), which we have already mentioned, and which do not necessarily involve the description of a situation;
 and *Extensive-form Games* (EG) that describe a game as a sequence of actions by (alternating) players, in the form of a tree, e.g., some representations of Chess.
 Finally, the following types are closer to the Reinforcement Learning field:
 *Sequential Decision Tasks* (SDT), which consider a set of situations, and actions in each situation that induce transitions to a next situation;
@@ -505,7 +505,7 @@ Each time an action is taken, this makes the current state, or situation, change
 Agents must learn to take the actions that lead to the best states.
 
 To take other agents into account, the preferred way seems to be integrating additional data about them to the agent's observations.
-Indeed, out of the 24 approaches suited for SDTs or SGs identified by @hernandez2019surveyLearningMultiagent, we note that only 2 rely only on the local agents' observations and their own reward (Q-Learning [@watkins1992qlearning] and Wolf-PHC [@bowling2002multiagent]).
+Indeed, out of the 24 approaches suited for SDTs or SGs identified by @hernandez2019surveyLearningMultiagent, we note that only 2 rely only on the local agents' observations and their own reward: Q-Learning [@watkins1992qlearning], and Wolf-PHC [@bowling2002multiagent].
 All other approaches require at least the observation of others' actions, and 7 of them further require the observation of the others' rewards as well.
 These approaches are listed in Table \@ref(tab:tab-marl), where the algorithms' requirements in terms of observability are colorized to ease reading.
 We refer the interested reader to @hernandez2019surveyLearningMultiagent[p.22] for the original, full table with additional details.

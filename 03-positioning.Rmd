@@ -237,7 +237,7 @@ Instead of being solely connected to the national grid, the micro-grid embeds it
 Prosumers can produce their own energy through the use of photovoltaic panels, and store a small quantity in their personal battery.
 They must distribute energy, i.e., choose how much to consume from the micro-grid, from their battery, how much to give back to help a fellow neighbor, how much to buy or sell from the national grid, in order so to satisfy their comfort, supporting a set of moral values all the while.
 Prosumers are represented by artificial agents that are tasked with taking these decisions to alleviate the prosumers' life, according to their profiles and wishes.
-This is another marker of the "smart" aspect in Smart Grids
+This is another marker of the "smart" aspect in Smart Grids.
 
 ### Actions {#positioning-smartgrid-actions}
 
@@ -351,9 +351,9 @@ school = load_agent_profile('profile_school_annually')
 To define our building profiles, we used an OpenEI public dataset of energy consumption [@openei2014dataset], which contains consumptions for many buildings in different places in the United States of America.
 We have defined 3 profiles, based on *Residential*, which we rename *Household*, *Office*, and *School* buildings from the city of Anchorage:
 
-- The *Household* type of agents has an action range of `r format(py$household$action_limit, big.mark = ',', scientific = F)`Wh, and a personal storage's capacity of `r format(py$household$max_storage, big.mark = ',', scientific = F)`Wh.
-- The *Office* type of agents has an action range of `r format(py$office$action_limit, big.mark = ',', scientific = F)`Wh, and a personal storage's capacity of `r format(py$office$max_storage, big.mark = ',', scientific = F)`Wh.
-- The *School* type of agents has an action range of `r format(py$school$action_limit, big.mark = ',', scientific = F)`Wh, and a personal storage's capacity of `r format(py$school$max_storage, big.mark = ',', scientific = F)`Wh.
+- The *Household* type of agents has an action range of $`r format(py$household$action_limit, big.mark = ',', scientific = F)`$Wh, and a personal storage's capacity of $`r format(py$household$max_storage, big.mark = ',', scientific = F)`$Wh.
+- The *Office* type of agents has an action range of $`r format(py$office$action_limit, big.mark = ',', scientific = F)`$Wh, and a personal storage's capacity of $`r format(py$office$max_storage, big.mark = ',', scientific = F)`$Wh.
+- The *School* type of agents has an action range of $`r format(py$school$action_limit, big.mark = ',', scientific = F)`$Wh, and a personal storage's capacity of $`r format(py$school$max_storage, big.mark = ',', scientific = F)`$Wh.
 
 Figure \@ref(fig:smartgrid-plot-needs) shows the need, for each hour in a year, for these 3 profiles.
 

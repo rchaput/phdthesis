@@ -20,7 +20,7 @@ Such networks, while achieving impressive performance on their tasks, can be dif
 As we will see in the results, our algorithms obtain similar or even better performance.
 
 The algorithms that we propose are based on an existing work [@smith2002applications; @smith2002dynamic] that we extend and evaluate in a more complex use-case.
-We found that Smith's initial work proposed, in order to handle continuous domains, to associate Self-Organizing Maps (SOMs) to a Q-Table.
+Smith's initial work proposed, in order to handle continuous domains, to associate Self-Organizing Maps (SOMs) to a Q-Table.
 This idea fulfills the first property, and also offers the modularity required by the second: by combining elements, it allows to easily modify, replace, or even add one or several elements to the approach.
 This motivated our choice of extending Smith's work.
 
@@ -34,12 +34,12 @@ They receive observations and take actions; during our experiments, these observ
 Figure \@ref(fig:learning1-schema) presents a summarizing schema of our proposed algorithms.
 It includes multiple learning agents that live within a shared environment.
 This environment sends observations to agents, which represent the current state, so that agents may choose an action and perform it in the environment.
-In response, the environment changes its state, and sends them observations, potentially different for each agent, corresponding to this new state, as well as a reward indicating how correct the performed action was.
+In response, the environment changes its state, and sends them new observations, potentially different for each agent, corresponding to this new state, as well as a reward indicating how correct the performed action was.
 Learning agents leverage the new observations and the reward to update their internal model.
 This observation-action-reward cycle is then repeated so as to make learning agents improve their behaviour, with respect to the considerations embedded in the reward function.
 The decision process relies on 3 structures, a State (Dynamic) Self-Organizing Map, also named the State-(D)SOM, an Action (Dynamic) Self-Organizing Map, also named the Action-(D)SOM, and a Q-Table.
 They take observations as inputs and output an action, which are both vectors of continuous numbers.
-The learning process updates these same structures, and take the reward as an input, in addition to observations.
+The learning process updates these same structures, and takes the reward as an input, in addition to observations.
 
 ```{drawio learning1-schema, src="figure/contribution1_learning.drawio", out.width = "95%"}
 #| fig.cap: >
@@ -117,7 +117,7 @@ The update received by a neuron is determined by Equation \@ref(eq:som-update), 
 \end{equation}
 
 In this equation, $\theta$ is the neighborhood function, which is typically a gaussian centered on the BMU ($u$), such that the BMU is the most updated, its closest neighbors are slightly updated, and farther neurons are not updated.
-The learning rate $\alpha$, and the neighborhood function $\theta$ both depends on the time step $t$: they are often monotonically decreasing, in order to force neurons' convergence and stability.
+The learning rate $\alpha$, and the neighborhood function $\theta$ both depend on the time step $t$: they are often monotonically decreasing, in order to force neurons' convergence and stability.
 
 One of the numerous extensions of the Self-Organizing Map is the Dynamic Self-Organizing Map (DSOM) [@rougier2011dynamic].
 The idea behind DSOMs is that self-organization should offer both stability, when the input data does not change much, and dynamism, when there is a sudden change.
@@ -127,7 +127,7 @@ As we mentioned, the SOM enforces stability through decreasing parameters (learn
 Indeed, as the parameters approach $0$, the vectors' updates become negligible, and the system does not adapt any more, even when faced with an abrupt change in the data distribution.
 
 DSOMs propose to replace the time-dependent parameters by a time-invariant one, named the *elasticity*, which determines the coupling of neurons.
-Whereas SOMs and other similar algorithms try to learn the density of data, DSOMs focus on the structure the data space, and the map will not try to place several neurons in a high-density region.
+Whereas SOMs and other similar algorithms try to learn the density of data, DSOMs focus on the structure of the data space, and the map will not try to place several neurons in a high-density region.
 In other words, if a neuron is considered as sufficiently close to the input data point, the DSOM will not update the other neurons, assuming that this region of the latent space is already quite well represented by this neuron.
 The "sufficiently close" is determined through the elasticity parameter: with high elasticity, neurons are tightly coupled with each other, whereas lower elasticity let neurons spread out over the whole latent space.
 
@@ -190,7 +190,7 @@ The proposed algorithms are thus based on 2 (Dynamic) SOMs, a State-SOM, and an 
 To navigate the Q-Table and access the Q-Values, we use discrete identifiers obtained from the SOMs.
 The Q-Table's dimensions thus depend on the (D)SOMs' number of neurons: the Q-Table has exactly as many rows as the State-(D)SOM has neurons, and exactly as many columns as the Action-(D)SOM has neurons, such that each neuron is represented by a row or column, and reciprocally.
 
-Our algorithms are separated into 2 distinct parts: the *decision* process, which choses an action from received observations about the environment, and the *learning* process, which updates the algorithms' data structures, so that the next decision step will yield a better action.
+Our algorithms are separated into 2 distinct parts: the *decision* process, which chooses an action from received observations about the environment, and the *learning* process, which updates the algorithms' data structures, so that the next decision step will yield a better action.
 We present in details these 2 parts below.
 
 ### The decision process
@@ -210,6 +210,7 @@ We present in details these 2 parts below.
     $\quad \mathbf{U_i}$ the vector associated to neuron $i$ in the State-(D)SOM\\
     $\quad \mathcal{W}$ the neurons in the Action-(D)SOM\\
     $\quad \mathbf{W_j}$ the vector associated to neuron $j$ in the Action-(D)SOM\\
+    $\quad \Q(s,a)$ the Q-value of action $a$ in state $s$\\
     $\quad \tau$ the Boltzmann's temperature\\
     $\quad \epsilon$ Noise control parameter\\
   }
@@ -238,7 +239,7 @@ We present in details these 2 parts below.
 ```
 
 We now explain the decision process that allows an agent to choose an action from received observations, which is described formally in Algorithm \@ref(fig:qsom-decision-alg) and represented in Figure \@ref(fig:qsom-decision-schema).
-First, we need to obtain a discrete identifier from an observation $\mathbf{o}$ that is a vector $\in \RR^{g}$, in order to access the Q-Table.
+First, we need to obtain a discrete identifier from an observation $\mathbf{o}$ that is a vector $\in \ObsSpace_l \subseteq \RR^{g}$, in order to access the Q-Table.
 To do so, we look for the Best Matching Unit (BMU), i.e., the neuron whose prototype vector is the closest to the observations, from the State-SOM, which is the SOM tasked with learning the observation space.
 The unique index of the BMU is used as the state identifier $s$ (line 2).
 
@@ -257,7 +258,7 @@ The Boltzmann probability of an action $j$ being selected is computed based on t
   P(X = j) =
 \frac{
   \frac{\exp(\Q(s,j))}{\tau}
-  }{\sum_{k} \frac{\exp(\Q(s,k))}{\tau}}
+  }{\sum_{k = 1}^{\length{\mathcal{W}}} \frac{\exp(\Q(s,k))}{\tau}}
   (\#eq:boltzmann-probabilities)
 \end{equation}
 
@@ -305,14 +306,15 @@ The learning process that makes this possible is formally described in Algorithm
 \Fn{\FnLearning{}}{
   \KwData{\\
     $\quad \mathcal{U}$ the neurons in the State-(D)SOM\\
-    $\quad \mathcal{W}$ the neurons in the Action-(D)SOM\\
     $\quad \mathbf{U_u}$ the vector associated to neuron $u$ in the State-(D)SOM\\
-    $\quad \mathbf{W_w}$ the vector associated to neuron $w$ in the Action-(D)SOM
+    $\quad \mathcal{W}$ the neurons in the Action-(D)SOM\\
+    $\quad \mathbf{W_w}$ the vector associated to neuron $w$ in the Action-(D)SOM\\
     $\quad \pos_U(u)$ is the position of neuron $u$ in the State-(D)SOM grid\\
     $\quad \pos_W(w)$ is the position of neuron $w$ in the Action-(D)SOM grid\\
-    $\quad \eta_{U}, \eta_{W}$ elasticity for State- and Action-(D)SOM\\
-    $\quad \alpha_{Q}, \alpha_{U}, \alpha_{W}$ learning rates for Q-Table, State-, Action-(D)SOM\\
-    $\quad \gamma$ Discount factor\\
+    $\quad \Q(s,a)$ the Q-value of action $a$ in state $s$\\
+    $\quad \eta_{U}, \eta_{W}$ elasticity for State- and Action-(D)SOMs\\
+    $\quad \alpha_{Q}, \alpha_{U}, \alpha_{W}$ learning rates for Q-Table, State-, Action-(D)SOMs\\
+    $\quad \gamma$ the discount factor\\
   }
   \KwIn{\\
     $\quad$ Previous observations $\mathbf{o}$\\
@@ -327,7 +329,7 @@ The learning process that makes this possible is formally described in Algorithm
   $\forall u \in \mathcal{U} \quad \psi_{U}(u) \gets exp\left(-\frac{1}{\eta_{U}^{2}}\frac{\norm{\pos_{U}(u) - \pos_{U}(s)}}{\norm{\mathbf{o} - \mathbf{U_u}}}\right)$\;
   $\forall w \in \mathcal{W} \quad \psi_{W}(w) \gets exp\left(-\frac{1}{\eta_{W}^{2}}\frac{\norm{\pos_{W}(w) - \pos_{W}(j)}}{\norm{\mathbf{a} - \mathbf{W_w}}}\right)$\;
   \tcc{If the action was interesting}
-  \If{$r + \gamma \max_{j'} Q(s',j') \stackrel{?}{>} Q(s,j)$}{
+  \If{$r + \gamma \max_{j'} \Q(s',j') \stackrel{?}{>} \Q(s,j)$}{
     \tcc{Update the Action-(D)SOM}
     \ForAll{neuron $w \in \mathcal{W}$}{
       $\mathbf{W_{w}} \gets \alpha_{W}\norm{\mathbf{a} - \mathbf{W_{w}}}\psi_{W}(w)\left(\mathbf{a} - \mathbf{W_{w}}\right) + \mathbf{W_{w}}$\;
@@ -511,7 +513,7 @@ ax1.set_ylabel('Need (Wh)')
 
 The second property is the environment size.
 We wanted to test our algorithms with different sets of agents, to ensure the scalability of the approach, in the sense that agents are able to learn a correct behaviour and adapt to many other agents in the same environment.
-This may be difficult as the number of agents increase, since there will most certainly be more conflicts.
+This may be difficult as the number of agents increases, since there will most certainly be more conflicts.
 We propose a first, *small* environment, containing $20$ Households agents, $5$ Office agents, and $1$ School agent.
 The second environment, *medium*, contains roughly 4 times more agents than in the *small* case: $80$ Household agents, $19$ Office agents, and $1$ School.
 
@@ -549,7 +551,7 @@ Several sets of experiments were performed:
 
 * Then, the 4 algorithms, configured with their best hyperparameters, were compared on multiple settings:
   both *annual* and *daily* consumption profiles, both *small* and *medium* sizes of environment, and all the reward functions.
-  This resulted in $2 \times 2 \times 7$ scenarios, which we ran $10$ times for each of the $4$ algorithms.
+  This resulted in $2 \times 2 \times 7$ scenarii, which we ran $10$ times for each of the $4$ algorithms.
 
 In the following results, we define a run's *score* as the average of the global rewards per step.
 The global reward corresponds to the reward, without focusing on a specific agent.
@@ -688,6 +690,9 @@ plt.legend(bbox_to_anchor=(0.0, 2.15), ncol=4, loc='lower center')
 plt.subplots_adjust(top=0.94, bottom=0.09)
 plt.show()
 ```
+
+`r if(knitr::is_latex_output()) '\\clearpage'`
+
 
 ```{r learning1-results-compare-table}
 #| tab.cap: >
@@ -831,8 +836,8 @@ do.call(rbind, apply(grid, 1, function (x) compare(data, "Q-DSOM-1", x[1], x[2],
 ```
 
 Figure \@ref(fig:learning1-agents-rewards) shows the evolution of individual rewards received by agents over the time steps, in the *annual / small* scenario, using the *adaptability2* reward function.
-We chose to focus on this combination of scenario and reward function as they are, arguably the most interesting.
-*Daily* scenarios are perhaps too easy for the agents as they do not include as many variations as the *annual*; additionally, *small* scenarios are easier to visualize and explore, as they contain fewer agents than *medium* scenarios.
+We chose to focus on this combination of scenario and reward function as they are, arguably, the most interesting.
+*Daily* scenarii are perhaps too easy for the agents as they do not include as many variations as the *annual*; additionally, *small* scenarios are easier to visualize and explore, as they contain fewer agents than *medium* scenarios.
 Finally, the *adaptability2* is retained for the same arguments that made us choose it for the hyperparameters search.
 We show a moving average of the rewards in order to erase the small and local variations to highlight the larger trend of the rewards' evolution.
 

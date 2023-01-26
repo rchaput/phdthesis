@@ -65,7 +65,7 @@ In this thesis, we focus on, and solve, the following objectives.
     3. The system must learn according to a well-defined specification of the desired behaviour, to avoid "specification gaming"[^specif-gaming] or mis-alignment.
 3. Implement a prototype use-case to demonstrate the feasibility of the approach.
 
-[^specif-gaming]: Also called the "King Midas problem" -- getting exactly what you asked, but not what you intended. See for example this [blog post from Deep Mind](https://www.deepmind.com/blog/specification-gaming-the-flip-side-of-ai-ingenuity) for details and examples.
+[^specif-gaming]: Also called the "King Midas problem" -- getting exactly what you asked for, but not what you intended. See for example this [blog post from Deep Mind](https://www.deepmind.com/blog/specification-gaming-the-flip-side-of-ai-ingenuity) for details and examples.
 
 
 <!-- Hypotheses / Design Choices -->
@@ -102,7 +102,7 @@ We present 3 contributions that aim to answer our research questions; they are b
 
 2. A hybrid method relying on symbolic judgments to construct the reward function from multiple moral values, focusing on the understandability of the resulting function.
 
-3. A multi-objective extension to the RL algorithms that focus on addressing dilemmas, by learning interesting actions for any possible human preferences, identifying situations of dilemma, and learning to settle them explicitly, according to contextualized human preferences.
+3. A multi-objective extension to the RL algorithms that focuses on addressing dilemmas, by learning interesting actions for any possible human preferences, identifying situations of dilemma, and learning to settle them explicitly, according to contextualized human preferences.
 
 Table \@ref(tab:table-recap-intro) summarizes the relation between objectives, research questions and contributions.
 
@@ -112,7 +112,7 @@ Table \@ref(tab:table-recap-intro) summarizes the relation between objectives, r
 #| tab.cap: >
 #|   Associations between objectives, research questions, and contributions.
 #|   Objective O3 (implementation of prototype use-case) is transverse to all contributions.
-tribble(
+ft <- tribble(
   ~RQ, ~C, ~obj,
   "RQ1", "C1", "O1.1",
   "RQ1", "C1", "O1.2",
@@ -142,8 +142,19 @@ tribble(
   fontsize(size = 10, part = "body") %>%
   fontsize(size = 9, part = "header") %>%
   fontsize(size = 7, part = "footer") %>%
-  autofit() %>%
-  # set_table_properties(width = 1) %>%
+  line_spacing(space = 0.8, part = "footer")
+
+# Flextable cannot create a full-width table easily in LaTeX, so we need
+# to manually set the width. The width value was fined-tuned manually to
+# suit our template.
+if (knitr::is_latex_output()) {
+   ft <- ft %>%
+     width(width = 50, unit = "mm")
+} else {
+   ft <- ft %>%
+     set_table_properties(width = 1, layout = "autofit")
+}
+ft %>%
   theme_vanilla()
 ```
 
