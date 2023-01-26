@@ -23,16 +23,16 @@ help: ## Show this help.
 
 
 pdf:  ## Build the PDF manuscript only.
-	R -q -e 'bookdown::render_book("index.Rmd", "thesisdown::thesis_pdf", output_dir = "$(OUTPUT_PDF)")'
+	R -q -e 'bookdown::render_book("index.Rmd", "thesisdown::thesis_pdf", output_dir = "$(strip $(OUTPUT_PDF))")'
 
 
 gitbook:  ## Build the HTML manuscript only.
-	R -q -e 'bookdown::render_book("index.Rmd", "thesisdown::thesis_gitbook", output_dir = "$(OUTPUT_HTML)")'
+	R -q -e 'bookdown::render_book("index.Rmd", "thesisdown::thesis_gitbook", output_dir = "$(strip $(OUTPUT_HTML))")'
 
 
 # Using the same folder allows the HTML version to link to the PDF for downloading.
 all:  ## Build both PDF and HTML manuscripts (in the same folder).
-	R -q -e 'bookdown::render_book("index.Rmd", c("thesisdown::thesis_pdf", "thesisdown::thesis_gitbook"), output_dir = "$(OUTPUT_ALL)"); warnings()'
+	R -q -e 'bookdown::render_book("index.Rmd", c("thesisdown::thesis_pdf", "thesisdown::thesis_gitbook"), output_dir = "$(strip $(OUTPUT_ALL))"); warnings()'
 
 
 # `preview=FALSE` forces to recompile the whole book, which avoids some bugs,
