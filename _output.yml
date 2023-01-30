@@ -21,7 +21,6 @@ thesisdown::thesis_gitbook:
       linkedin: no
       all: ["github"]
     download: ["pdf"]
-    toc: 
-      # collapse: subsection
-      # before: "<br><br>"
-      # after: "<li><a href='https://abichat.github.io/defense' target='blank'>PhD defense</a></li>"
+    toc:
+       before: "<br><br>"
+       after: "<li><a href='https://github.com/rchaput/phdthesis/blob/slides/slides.pdf' target='blank'>PhD defence</a></li>"

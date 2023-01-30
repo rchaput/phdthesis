@@ -3,6 +3,9 @@ title: 'Learning behaviours aligned with moral values in a multi-agent system: g
 author: 'Rémy Chaput'
 date: '27/10/2022'
 
+github-repo: 'rchaput/phdthesis'
+url: 'https://rchaput.github.io/phdthesis/'
+
 # Thesis information
 title_fr: "Apprendre des comportements alignés sur des valeurs morales dans un système multi-agent: guider l'apprentissage par renforcement avec des jugements symboliques"
 nnt: '2022LYO1071'
